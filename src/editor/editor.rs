@@ -85,8 +85,7 @@ impl Editor {
 impl EventHandler for Editor {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.viewport.set_size(ctx);
-        self.keyboard
-            .update(ggez::input::keyboard::pressed_keys(ctx));
+        self.keyboard.update(ctx);
 
         let now = Instant::now();
         self.update_delta(ctx, now - self.now);

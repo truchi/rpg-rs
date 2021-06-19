@@ -107,6 +107,7 @@ impl Viewport {
     }
 
     pub fn handle_keys(&mut self, keyboard: &Keyboard) {
+        let ctrl = keyboard.is_active(KeyMods::CTRL);
         let plus = keyboard.is_pressed(KeyCode::Plus);
         let minus = keyboard.is_pressed(KeyCode::Minus);
         let page_up = keyboard.is_pressed(KeyCode::PageUp);
@@ -133,7 +134,7 @@ impl Viewport {
             self.zoom_out();
         }
 
-        let steps = 10.;
+        let steps = if ctrl { 1. } else { 10. };
         if up {
             self.rect.y -= self.rect.h / steps;
         } else if down {

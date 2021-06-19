@@ -20,7 +20,7 @@ pub use ggez::{
     },
     input::{
         gamepad::{gilrs::ev::EventType, GamepadId},
-        keyboard::KeyCode,
+        keyboard::{KeyCode, KeyMods},
         mouse::{position, MouseButton},
     },
     Context,
