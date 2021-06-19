@@ -3,91 +3,101 @@ use super::*;
 pub struct Grid;
 
 impl Grid {
-    pub fn draw(
-        ctx: &mut Context,
-        origin: Point,
-        (screen_width, screen_height): (f32, f32),
-        zoom: u8,
-    ) {
-        let lerp = |start: f32, end: f32| -> f32 {
-            (end - start) / (MAX_ZOOM as f32) * zoom as f32 + start
+    pub fn draw(ctx: &mut Context, viewport: Viewport) {
+        let mut grid = MeshBuilder::new();
+        let mut base = MeshBuilder::new();
+
+        Self::grid(&mut grid, viewport);
+        Self::base(&mut base, viewport);
+
+        let dest = |origin, tile| {
+            if origin > 0. {
+                (origin % tile) - tile
+            } else if origin < 0. {
+                origin % tile
+            } else {
+                0.
+            }
         };
 
-        let scale = zoom_to_scale(zoom);
-        let tile_width = scale * TILE_WIDTH;
-        let tile_height = scale * TILE_HEIGHT;
+        let grid = grid.build(ctx).unwrap();
+        grid.draw(
+            ctx,
+            DrawParam::new().dest([
+                dest(viewport.origin().x, viewport.tile().x),
+                dest(viewport.origin().y, viewport.tile().y),
+            ]),
+        )
+        .unwrap();
 
-        let delta = Point {
-            x: (origin.x) % (tile_width),
-            y: (origin.y) % (tile_height),
+        let base = base.build(ctx).unwrap();
+        base.draw(ctx, DrawParam::new().dest(viewport.origin()))
+            .unwrap();
+    }
+
+    fn grid(mesh: &mut MeshBuilder, viewport: Viewport) {
+        let lerp = |start: f32, end: f32| -> f32 {
+            (end - start) / (MAX_ZOOM as f32) * viewport.zoom() as f32 + start
         };
 
         let green = Color::new(0., 1., 0., lerp(0.25, 0.5));
         let red = Color::new(1., 0., 0., lerp(0., 0.25));
-        let blue = Color::new(0., 0., 1., 1.);
 
-        let mut mesh = MeshBuilder::new();
+        let w = viewport.tile().x;
+        let h = viewport.tile().y;
+        let width = viewport.w() + w;
+        let height = viewport.h() + h;
 
         // Vertical lines
-        let mut x = delta.x + 1.;
-        while x < screen_width {
-            mesh.line(&[[x, 0.], [x, screen_height]], 1., green)
-                .unwrap();
+        let mut x = 1.;
+        while x < width {
+            Self::vertical(mesh, x, height, green);
 
             for i in 1..16 {
-                let i = i as f32 * tile_width / 16.;
-                mesh.line(&[[x + i, 0.], [x + i, screen_height]], 1., red)
-                    .unwrap();
+                let i = i as f32 * w / 16.;
+                Self::vertical(mesh, x + i, height, red);
             }
 
-            x += tile_width;
+            x += w;
         }
 
         // Horizontal lines
-        let mut y = delta.y + 1.;
-        while y < screen_height {
-            mesh.line(&[[0., y], [screen_width, y]], 1., green).unwrap();
+        let mut y = 1.;
+        while y < height {
+            Self::horizontal(mesh, y, width, green);
 
             for i in 1..16 {
-                let i = i as f32 * tile_height / 16.;
-                mesh.line(&[[0., y + i], [screen_width, y + i]], 1., red)
-                    .unwrap();
+                let i = i as f32 * h / 16.;
+                Self::horizontal(mesh, y + i, width, red);
             }
 
-            y += tile_height;
+            y += h;
         }
+    }
+
+    fn base(mesh: &mut MeshBuilder, viewport: Viewport) {
+        let blue = Color::new(0., 0., 1., 1.);
+        let w = viewport.tile().x;
+        let h = viewport.tile().y;
 
         // Origin
-        mesh.circle(
-            DrawMode::stroke(1.),
-            [origin.x, origin.y],
-            (tile_width + tile_height) / 8.,
-            1.,
-            blue,
-        )
-        .unwrap();
+        Self::circle(mesh, (w + h) / 8., blue);
 
         // Base
-        mesh.line(
-            &[[1. + origin.x, 1. + origin.y], [
-                1. + origin.x + tile_width,
-                1. + origin.y,
-            ]],
-            1.,
-            blue,
-        )
-        .unwrap();
-        mesh.line(
-            &[[1. + origin.x, 1. + origin.y], [
-                1. + origin.x,
-                1. + origin.y + tile_height,
-            ]],
-            1.,
-            blue,
-        )
-        .unwrap();
+        Self::horizontal(mesh, 1., w, blue);
+        Self::vertical(mesh, 1., h, blue);
+    }
 
-        let mesh = mesh.build(ctx).unwrap();
-        mesh.draw(ctx, Default::default()).unwrap();
+    fn vertical(mesh: &mut MeshBuilder, x: f32, h: f32, color: Color) {
+        mesh.line(&[[x, 0.], [x, h]], 1., color).unwrap();
+    }
+
+    fn horizontal(mesh: &mut MeshBuilder, y: f32, w: f32, color: Color) {
+        mesh.line(&[[0., y], [w, y]], 1., color).unwrap();
+    }
+
+    fn circle(mesh: &mut MeshBuilder, r: f32, color: Color) {
+        mesh.circle(DrawMode::stroke(1.), [0., 0.], r, 1., color)
+            .unwrap();
     }
 }

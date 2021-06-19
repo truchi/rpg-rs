@@ -1,8 +1,12 @@
 use super::*;
 
 mod editor;
+mod scene;
+mod viewport;
 
 pub use editor::*;
+pub use scene::*;
+pub use viewport::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Floor {
