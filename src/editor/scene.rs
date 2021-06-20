@@ -31,21 +31,21 @@ impl Scene {
         self.make_vertical(5, -10, 9);
         self.make_vertical(9, -10, 9);
 
-        self.floors.insert([2, 2].into(), Floor::Floor2);
-        self.floors.insert([2, 7].into(), Floor::Floor3);
-        self.floors.insert([7, 2].into(), Floor::Floor4);
-        self.floors.insert([7, 7].into(), Floor::Floor5);
+        self.floors.insert([2, 2].into(), Floor::Cracks2);
+        self.floors.insert([2, 7].into(), Floor::Cracks3);
+        self.floors.insert([7, 2].into(), Floor::Cracks4);
+        self.floors.insert([7, 7].into(), Floor::Cracks5);
     }
 
     pub fn make_vertical(&mut self, x: i16, top: i16, bottom: i16) {
         for i in top..=bottom {
-            self.floors.insert([x, i].into(), Floor::Floor1);
+            self.floors.insert([x, i].into(), Floor::Floor);
         }
     }
 
     pub fn make_horizontal(&mut self, y: i16, left: i16, right: i16) {
         for i in left..=right {
-            self.floors.insert([i, y].into(), Floor::Floor1);
+            self.floors.insert([i, y].into(), Floor::Floor);
         }
     }
 }

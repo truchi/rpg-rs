@@ -12,55 +12,92 @@ pub use scene_view::*;
 pub use tiles_view::*;
 pub use viewport::*;
 
-#[derive(Copy, Clone, Debug)]
-pub enum Floor {
-    Floor1,
-    Floor2,
-    Floor3,
-    Floor4,
-    Floor5,
-    Floor6,
-    Floor7,
-    Floor8,
-}
+macro_rules! elements {
+    ($($Name:ident $N:literal [$($Variant:ident $Tile:ident)*])*) => { $(
+        #[derive(Copy, Clone, Debug)]
+        pub enum $Name { $($Variant,)* }
 
-impl Floor {
-    pub fn random() -> Self {
-        Self::from_usize(thread_rng().gen_range(0..8))
-    }
+        impl $Name {
+            pub fn random() -> Self {
+                Self::from_usize(thread_rng().gen_range(0..$N))
+            }
 
-    pub fn from_usize(u: usize) -> Self {
-        let all = Self::all();
+            pub fn from_usize(u: usize) -> Self {
+                let all = Self::all();
 
-        *unsafe { all.get_unchecked(u % all.len()) }
-    }
+                *unsafe { all.get_unchecked(u % all.len()) }
+            }
 
-    pub const fn all() -> [Self; 8] {
-        [
-            Self::Floor1,
-            Self::Floor2,
-            Self::Floor3,
-            Self::Floor4,
-            Self::Floor5,
-            Self::Floor6,
-            Self::Floor7,
-            Self::Floor8,
-        ]
-    }
+            pub const fn all() -> [Self; $N] {
+                [$(Self::$Variant,)*]
+            }
 
-    pub fn tile(&self) -> Tile {
-        match self {
-            Self::Floor1 => Tile::FLOOR_1,
-            Self::Floor2 => Tile::FLOOR_2,
-            Self::Floor3 => Tile::FLOOR_3,
-            Self::Floor4 => Tile::FLOOR_4,
-            Self::Floor5 => Tile::FLOOR_5,
-            Self::Floor6 => Tile::FLOOR_6,
-            Self::Floor7 => Tile::FLOOR_7,
-            Self::Floor8 => Tile::FLOOR_8,
+            pub fn tile(&self) -> Tile {
+                match self {
+                    $(Self::$Variant => Tile::$Tile,)*
+                }
+            }
         }
-    }
+    )* };
 }
+
+elements!(
+    Floor 12 [
+        Floor   FLOOR_1
+        Cracks1 FLOOR_2
+        Cracks2 FLOOR_3
+        Cracks3 FLOOR_4
+        Cracks4 FLOOR_5
+        Cracks5 FLOOR_6
+        Cracks6 FLOOR_7
+        Cracks7 FLOOR_8
+        Ladder  FLOOR_LADDER
+        Spikes  FLOOR_SPIKES_ANIM_0
+        Hole    HOLE
+        Edge    EDGE
+    ]
+    WallFace 10 [
+        Wall            WALL_MID
+        Column          WALL_COLUMN_MID
+        SmallHole       WALL_HOLE_1
+        BigHole         WALL_HOLE_2
+        RedBanner       WALL_BANNER_RED
+        GreenBanner     WALL_BANNER_GREEN
+        BlueBanner      WALL_BANNER_BLUE
+        YellowBanner    WALL_BANNER_YELLOW
+        LavaFountain    WALL_FOUNTAIN_MID_RED_ANIM_0
+        WaterFountain   WALL_FOUNTAIN_MID_BLUE_ANIM_0
+    ]
+    Creature 22 [
+        TinyZombie      TINY_ZOMBIE_IDLE_ANIM_0
+        Zombie          ZOMBIE_IDLE_ANIM_0
+        IceZombie       ICE_ZOMBIE_IDLE_ANIM_0
+        MaskedOrc       MASKED_ORC_IDLE_ANIM_0
+        OrcWarrior      ORC_WARRIOR_IDLE_ANIM_0
+        OrcShaman       ORC_SHAMAN_IDLE_ANIM_0
+        Necromancer     NECROMANCER_IDLE_ANIM_0
+        Wogol           WOGOL_IDLE_ANIM_0
+        Goblin          GOBLIN_IDLE_ANIM_0
+        Imp             IMP_IDLE_ANIM_0
+        Skelet          SKELET_IDLE_ANIM_0
+        Muddy           MUDDY_IDLE_ANIM_0
+        Swampy          SWAMPY_IDLE_ANIM_0
+        Chort           CHORT_IDLE_ANIM_0
+        MaleElf         ELF_M_IDLE_ANIM_0
+        FemaleElf       ELF_F_IDLE_ANIM_0
+        MaleKnight      KNIGHT_M_IDLE_ANIM_0
+        FemaleKnight    KNIGHT_F_IDLE_ANIM_0
+        MaleWizzard     WIZZARD_M_IDLE_ANIM_0
+        FemaleWizzard   WIZZARD_F_IDLE_ANIM_0
+        MaleLizard      LIZARD_M_IDLE_ANIM_0
+        FemaleLizard    LIZARD_F_IDLE_ANIM_0
+    ]
+    Boss 3 [
+        Ogre            OGRE_IDLE_ANIM_0
+        BigZombie       BIG_ZOMBIE_IDLE_ANIM_0
+        BigDemon        BIG_DEMON_IDLE_ANIM_0
+    ]
+);
 
 #[derive(Copy, Clone, Debug)]
 pub enum Direction {
@@ -68,18 +105,6 @@ pub enum Direction {
     S,
     W,
     E,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum WallFace {
-    Wall,
-    Column,
-    RedBanner,
-    GreenBanner,
-    BlueBanner,
-    YellowBanner,
-    LavaFountain,
-    WaterFountain,
 }
 
 #[derive(Copy, Clone, Debug)]

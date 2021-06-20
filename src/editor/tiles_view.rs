@@ -16,15 +16,15 @@ impl View for TilesView {
         let mut mesh = MeshBuilder::new();
 
         let scale = 2.;
-        let width = scale * TILE_WIDTH;
-        let height = scale * TILE_HEIGHT;
         let margin_x = TILE_WIDTH;
         let margin_y = TILE_HEIGHT;
 
-        for (i, floor) in Floor::all().iter().enumerate() {
+        let mut show = |i, tile: Tile, margin_y_factor| {
             let i = i as f32;
+            let width = scale * tile.w as f32;
+            let height = scale * tile.h as f32;
             let x = margin_x + i * (width + margin_x);
-            let y = margin_y;
+            let y = margin_y_factor * margin_y;
 
             mesh.rectangle(
                 DrawMode::stroke(2.),
@@ -32,7 +32,23 @@ impl View for TilesView {
                 Color::new(0., 1., 0., 1.),
             )
             .unwrap();
-            tile_renderer.add_raw(floor.tile(), [x, y], scale);
+            tile_renderer.add_raw(tile, [x, y], scale);
+        };
+
+        for (i, floor) in Floor::all().iter().enumerate() {
+            show(i, floor.tile(), 1.);
+        }
+
+        for (i, wall) in WallFace::all().iter().enumerate() {
+            show(i, wall.tile(), 4.);
+        }
+
+        for (i, creature) in Creature::all().iter().enumerate() {
+            show(i, creature.tile(), 7.);
+        }
+
+        for (i, boss) in Boss::all().iter().enumerate() {
+            show(i, boss.tile(), 10.);
         }
 
         tile_renderer.draw(ctx, [0., 0.], 1.);
