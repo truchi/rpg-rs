@@ -48,7 +48,7 @@ impl View for TilesView {
         }
 
         for (i, boss) in Boss::all().iter().enumerate() {
-            show(i, boss.tile(), 10.);
+            show(i, boss.tile(), 11.);
         }
 
         tile_renderer.draw(ctx, [0., 0.], 1.);

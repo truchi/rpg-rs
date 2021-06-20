@@ -69,20 +69,7 @@ elements!(
         WaterFountain   WALL_FOUNTAIN_MID_BLUE_ANIM_0
     ]
     Creature 22 [
-        TinyZombie      TINY_ZOMBIE_IDLE_ANIM_0
-        Zombie          ZOMBIE_IDLE_ANIM_0
-        IceZombie       ICE_ZOMBIE_IDLE_ANIM_0
-        MaskedOrc       MASKED_ORC_IDLE_ANIM_0
-        OrcWarrior      ORC_WARRIOR_IDLE_ANIM_0
-        OrcShaman       ORC_SHAMAN_IDLE_ANIM_0
-        Necromancer     NECROMANCER_IDLE_ANIM_0
-        Wogol           WOGOL_IDLE_ANIM_0
-        Goblin          GOBLIN_IDLE_ANIM_0
-        Imp             IMP_IDLE_ANIM_0
-        Skelet          SKELET_IDLE_ANIM_0
-        Muddy           MUDDY_IDLE_ANIM_0
-        Swampy          SWAMPY_IDLE_ANIM_0
-        Chort           CHORT_IDLE_ANIM_0
+        // Hero
         MaleElf         ELF_M_IDLE_ANIM_0
         FemaleElf       ELF_F_IDLE_ANIM_0
         MaleKnight      KNIGHT_M_IDLE_ANIM_0
@@ -91,11 +78,29 @@ elements!(
         FemaleWizzard   WIZZARD_F_IDLE_ANIM_0
         MaleLizard      LIZARD_M_IDLE_ANIM_0
         FemaleLizard    LIZARD_F_IDLE_ANIM_0
+        // Demons
+        Imp             IMP_IDLE_ANIM_0
+        Necromancer     NECROMANCER_IDLE_ANIM_0
+        Wogol           WOGOL_IDLE_ANIM_0
+        Chort           CHORT_IDLE_ANIM_0
+        // Undeads
+        TinyZombie      TINY_ZOMBIE_IDLE_ANIM_0
+        Zombie          ZOMBIE_IDLE_ANIM_0
+        IceZombie       ICE_ZOMBIE_IDLE_ANIM_0
+        Skelet          SKELET_IDLE_ANIM_0
+        // Orcs
+        MaskedOrc       MASKED_ORC_IDLE_ANIM_0
+        OrcWarrior      ORC_WARRIOR_IDLE_ANIM_0
+        OrcShaman       ORC_SHAMAN_IDLE_ANIM_0
+        Goblin          GOBLIN_IDLE_ANIM_0
+        // Misc
+        Muddy           MUDDY_IDLE_ANIM_0
+        Swampy          SWAMPY_IDLE_ANIM_0
     ]
     Boss 3 [
-        Ogre            OGRE_IDLE_ANIM_0
-        BigZombie       BIG_ZOMBIE_IDLE_ANIM_0
-        BigDemon        BIG_DEMON_IDLE_ANIM_0
+        BigDemon        BIG_DEMON_IDLE_ANIM_0  // Demon
+        BigZombie       BIG_ZOMBIE_IDLE_ANIM_0 // Undead
+        Ogre            OGRE_IDLE_ANIM_0       // Orc
     ]
 );
 
