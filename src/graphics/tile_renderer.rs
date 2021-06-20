@@ -15,6 +15,7 @@ impl TileRenderer {
         }
     }
 
+    // TODO replace uses with add_raw?
     pub fn add(&mut self, tile: Tile, pos: impl Into<Point>) {
         let pos = pos.into();
 
@@ -25,13 +26,19 @@ impl TileRenderer {
         );
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, viewport: Viewport) -> &mut Self {
-        let origin = viewport.origin();
-        let scale = viewport.scale();
+    pub fn add_raw(&mut self, tile: Tile, pos: impl Into<Point>, scale: f32) {
+        self.batch.add(
+            DrawParam::new()
+                .src(tile.rect())
+                .dest(pos)
+                .scale([scale, scale]),
+        );
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context, origin: impl Into<Point>, scale: f32) {
         let param = DrawParam::new().dest(origin).scale([scale, scale]);
 
         self.batch.draw(ctx, param).unwrap();
-        self
     }
 
     pub fn clear(&mut self) {

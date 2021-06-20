@@ -30,16 +30,22 @@ impl Floor {
     }
 
     pub fn from_usize(u: usize) -> Self {
-        match u % 8 {
-            0 => Self::Floor1,
-            1 => Self::Floor2,
-            2 => Self::Floor3,
-            3 => Self::Floor4,
-            4 => Self::Floor5,
-            5 => Self::Floor6,
-            6 => Self::Floor7,
-            _ => Self::Floor8,
-        }
+        let all = Self::all();
+
+        *unsafe { all.get_unchecked(u % all.len()) }
+    }
+
+    pub const fn all() -> [Self; 8] {
+        [
+            Self::Floor1,
+            Self::Floor2,
+            Self::Floor3,
+            Self::Floor4,
+            Self::Floor5,
+            Self::Floor6,
+            Self::Floor7,
+            Self::Floor8,
+        ]
     }
 
     pub fn tile(&self) -> Tile {

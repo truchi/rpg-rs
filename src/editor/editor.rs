@@ -40,7 +40,7 @@ impl Editor {
             tiles_view:    TilesView::new(ctx),
             tile_renderer: TileRenderer::new(ctx),
             now:           Instant::now(),
-            view:          Views::Scene,
+            view:          Views::Tiles,
         }
     }
 
@@ -96,6 +96,7 @@ impl EventHandler for Editor {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         clear(ctx, Color::from_rgb(0, 0, 0));
+        self.tile_renderer.clear();
 
         match self.view {
             Views::Scene => {

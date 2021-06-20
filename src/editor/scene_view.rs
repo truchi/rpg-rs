@@ -49,7 +49,7 @@ impl View for SceneView {
 
     fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
         self.scene.render(tile_renderer);
-        tile_renderer.draw(ctx, self.viewport).clear();
+        tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if self.show_grid {
             Grid::draw(ctx, self.viewport);
