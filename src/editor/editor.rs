@@ -1,13 +1,30 @@
 use super::*;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Views {
+    Scene,
+    Tiles,
+}
+
+impl Views {
+    pub fn switch(&mut self) {
+        *self = match self {
+            Self::Scene => Self::Tiles,
+            Self::Tiles => Self::Scene,
+        };
+    }
+}
+
 #[derive(Debug)]
 pub struct Editor {
-    keyboard:  Keyboard,
-    scene:     Scene,
-    tiles:     Tiles,
-    now:       Instant,
-    viewport:  Viewport,
-    show_grid: bool,
+    keyboard:   Keyboard,
+    scene:      Scene,
+    tiles_view: TilesView,
+    tiles:      Tiles,
+    now:        Instant,
+    viewport:   Viewport,
+    show_grid:  bool,
+    view:       Views,
 }
 
 impl Editor {
@@ -18,10 +35,12 @@ impl Editor {
         Self {
             keyboard: Keyboard::new(),
             scene,
+            tiles_view: TilesView::new(ctx),
             tiles: Tiles::new(ctx),
             now: Instant::now(),
             viewport: Viewport::new(ctx),
             show_grid: true,
+            view: Views::Scene,
         }
     }
 
@@ -45,7 +64,13 @@ impl Editor {
         }
     }
 
-    fn update_delta(&mut self, ctx: &mut Context, delta: Duration) {
+    fn handle_switch_view(&mut self) {
+        if self.keyboard.is_pressed(KeyCode::Tab) {
+            self.view.switch();
+        }
+    }
+
+    fn update_scene(&mut self, ctx: &mut Context, delta: Duration) {
         self.viewport.handle_keys(&self.keyboard);
         self.handle_keys();
 
@@ -64,7 +89,9 @@ impl Editor {
         // Ok(())
     }
 
-    fn draw2(&mut self, ctx: &mut Context) {
+    fn update_tiles(&mut self, ctx: &mut Context, delta: Duration) {}
+
+    fn draw_scene(&mut self, ctx: &mut Context) {
         self.scene.render(&mut self.tiles);
         self.tiles.draw(ctx, self.viewport).clear();
 
@@ -73,7 +100,9 @@ impl Editor {
         }
     }
 
-    pub fn handle_keys(&mut self) {
+    fn draw_tiles(&mut self, ctx: &mut Context) {}
+
+    fn handle_keys(&mut self) {
         let g = self.keyboard.is_pressed(KeyCode::G);
 
         if g {
@@ -88,18 +117,36 @@ impl EventHandler for Editor {
         self.keyboard.update(ctx);
 
         let now = Instant::now();
-        self.update_delta(ctx, now - self.now);
-        self.now = now;
+        let delta = now - self.now;
 
+        self.handle_switch_view();
+        match self.view {
+            Views::Scene => {
+                self.update_scene(ctx, delta);
+            }
+            Views::Tiles => {
+                self.update_tiles(ctx, delta);
+            }
+        }
+
+        self.now = now;
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         clear(ctx, Color::from_rgb(0, 0, 0));
-        self.draw2(ctx);
+
+        match self.view {
+            Views::Scene => {
+                self.draw_scene(ctx);
+            }
+            Views::Tiles => {
+                self.draw_tiles(ctx);
+            }
+        }
+
         present(ctx)?;
         self.sleep();
-
         Ok(())
     }
 }
