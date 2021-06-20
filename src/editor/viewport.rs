@@ -69,8 +69,12 @@ impl Viewport {
         [self.scale() * TILE_WIDTH, self.scale() * TILE_HEIGHT].into()
     }
 
-    pub fn zoom_reset(&mut self) {
+    pub fn zoom_min(&mut self) {
         while self.zoom_out() {}
+    }
+
+    pub fn zoom_max(&mut self) {
+        while self.zoom_in() {}
     }
 
     pub fn zoom_in(&mut self) -> bool {
@@ -124,11 +128,11 @@ impl Viewport {
             self.rect.y = 0.;
         }
 
-        if equals {
-            self.zoom_reset();
-        }
-
-        if plus || page_up {
+        if ctrl && page_up {
+            self.zoom_max();
+        } else if equals || ctrl && page_down {
+            self.zoom_min();
+        } else if plus || page_up {
             self.zoom_in();
         } else if minus || page_down {
             self.zoom_out();
