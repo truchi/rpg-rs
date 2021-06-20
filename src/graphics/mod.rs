@@ -2,8 +2,8 @@ use super::*;
 
 mod grid;
 mod tile;
-mod tiles;
+mod tile_renderer;
 
 pub use grid::*;
 pub use tile::*;
-pub use tiles::*;
+pub use tile_renderer::*;

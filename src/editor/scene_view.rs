@@ -7,19 +7,6 @@ pub struct SceneView {
     show_grid: bool,
 }
 
-impl SceneView {
-    /*
-    fn update(&mut self, ctx: &mut Context) {
-    }
-
-    fn draw(&mut self, ctx: &mut Context) {
-    }
-
-    fn handle_keys(&mut self) {
-    }
-    */
-}
-
 impl View for SceneView {
     fn new(ctx: &mut Context) -> Self {
         let mut scene = Scene::default();
@@ -60,9 +47,9 @@ impl View for SceneView {
         // Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context, tiles: &mut Tiles) {
-        self.scene.render(tiles);
-        tiles.draw(ctx, self.viewport).clear();
+    fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
+        self.scene.render(tile_renderer);
+        tile_renderer.draw(ctx, self.viewport).clear();
 
         if self.show_grid {
             Grid::draw(ctx, self.viewport);

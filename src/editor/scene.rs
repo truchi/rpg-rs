@@ -6,9 +6,9 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn render(&self, tiles: &mut Tiles) {
+    pub fn render(&self, tile_renderer: &mut TileRenderer) {
         for (pos, floor) in &self.floors {
-            tiles.add(floor.tile(), [pos.x as f32, pos.y as f32]);
+            tile_renderer.add(floor.tile(), [pos.x as f32, pos.y as f32]);
         }
     }
 

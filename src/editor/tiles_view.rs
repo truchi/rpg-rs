@@ -3,8 +3,6 @@ use super::*;
 #[derive(Clone, Default, Debug)]
 pub struct TilesView {}
 
-impl TilesView {}
-
 impl View for TilesView {
     fn new(ctx: &mut Context) -> Self {
         Self {}
@@ -14,5 +12,5 @@ impl View for TilesView {
 
     fn update(&mut self, ctx: &mut Context) {}
 
-    fn draw(&mut self, ctx: &mut Context, tiles: &mut Tiles) {}
+    fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {}
 }

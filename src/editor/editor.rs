@@ -4,7 +4,7 @@ pub trait View {
     fn new(ctx: &mut Context) -> Self;
     fn events(&mut self, keyboard: &Keyboard);
     fn update(&mut self, ctx: &mut Context);
-    fn draw(&mut self, ctx: &mut Context, tiles: &mut Tiles);
+    fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer);
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -24,23 +24,23 @@ impl Views {
 
 #[derive(Debug)]
 pub struct Editor {
-    keyboard:   Keyboard,
-    scene_view: SceneView,
-    tiles_view: TilesView,
-    tiles:      Tiles,
-    now:        Instant,
-    view:       Views,
+    keyboard:      Keyboard,
+    scene_view:    SceneView,
+    tiles_view:    TilesView,
+    tile_renderer: TileRenderer,
+    now:           Instant,
+    view:          Views,
 }
 
 impl Editor {
     pub fn new(ctx: &mut Context) -> Self {
         Self {
-            keyboard:   Keyboard::new(),
-            scene_view: SceneView::new(ctx),
-            tiles_view: TilesView::new(ctx),
-            tiles:      Tiles::new(ctx),
-            now:        Instant::now(),
-            view:       Views::Scene,
+            keyboard:      Keyboard::new(),
+            scene_view:    SceneView::new(ctx),
+            tiles_view:    TilesView::new(ctx),
+            tile_renderer: TileRenderer::new(ctx),
+            now:           Instant::now(),
+            view:          Views::Scene,
         }
     }
 
@@ -99,10 +99,10 @@ impl EventHandler for Editor {
 
         match self.view {
             Views::Scene => {
-                self.scene_view.draw(ctx, &mut self.tiles);
+                self.scene_view.draw(ctx, &mut self.tile_renderer);
             }
             Views::Tiles => {
-                self.tiles_view.draw(ctx, &mut self.tiles);
+                self.tiles_view.draw(ctx, &mut self.tile_renderer);
             }
         }
 

@@ -1,11 +1,11 @@
 use super::*;
 
 #[derive(Clone, Debug)]
-pub struct Tiles {
+pub struct TileRenderer {
     batch: SpriteBatch,
 }
 
-impl Tiles {
+impl TileRenderer {
     pub fn new(ctx: &mut Context) -> Self {
         let mut image = Image::new(ctx, ARTPACK).expect("Cannot read artpack");
         image.set_filter(FilterMode::Nearest);
