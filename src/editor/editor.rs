@@ -1,5 +1,12 @@
 use super::*;
 
+pub trait View {
+    fn new(ctx: &mut Context) -> Self;
+    fn events(&mut self, keyboard: &Keyboard);
+    fn update(&mut self, ctx: &mut Context);
+    fn draw(&mut self, ctx: &mut Context, tiles: &mut Tiles);
+}
+
 #[derive(Copy, Clone, Debug)]
 pub enum Views {
     Scene,
@@ -18,29 +25,28 @@ impl Views {
 #[derive(Debug)]
 pub struct Editor {
     keyboard:   Keyboard,
-    scene:      Scene,
+    scene_view: SceneView,
     tiles_view: TilesView,
     tiles:      Tiles,
     now:        Instant,
-    viewport:   Viewport,
-    show_grid:  bool,
     view:       Views,
 }
 
 impl Editor {
     pub fn new(ctx: &mut Context) -> Self {
-        let mut scene = Scene::default();
-        scene.make_rects();
-
         Self {
-            keyboard: Keyboard::new(),
-            scene,
+            keyboard:   Keyboard::new(),
+            scene_view: SceneView::new(ctx),
             tiles_view: TilesView::new(ctx),
-            tiles: Tiles::new(ctx),
-            now: Instant::now(),
-            viewport: Viewport::new(ctx),
-            show_grid: true,
-            view: Views::Scene,
+            tiles:      Tiles::new(ctx),
+            now:        Instant::now(),
+            view:       Views::Scene,
+        }
+    }
+
+    fn handle_switch_view(&mut self) {
+        if self.keyboard.is_pressed(KeyCode::Tab) {
+            self.view.switch();
         }
     }
 
@@ -63,69 +69,24 @@ impl Editor {
             std::thread::sleep(rate - elapsed);
         }
     }
-
-    fn handle_switch_view(&mut self) {
-        if self.keyboard.is_pressed(KeyCode::Tab) {
-            self.view.switch();
-        }
-    }
-
-    fn update_scene(&mut self, ctx: &mut Context, delta: Duration) {
-        self.viewport.handle_keys(&self.keyboard);
-        self.handle_keys();
-
-        // let pos = ggez::input::mouse::position(ctx);
-        // let click = ggez::input::mouse::button_pressed(ctx,
-        // MouseButton::Left); if click {
-        // let position = Point::from([pos.x - self.origin.x, pos.y -
-        // self.origin.y]); let scale = self.viewport.scale();
-        // let tile = Point::from([
-        // (position.x / (scale * TILE_WIDTH)).floor() as i16,
-        // (position.y / (scale * TILE_HEIGHT)).floor() as i16,
-        // ]);
-        // self.scene.floors.insert(tile, Floor::Floor1);
-        // }
-
-        // Ok(())
-    }
-
-    fn update_tiles(&mut self, ctx: &mut Context, delta: Duration) {}
-
-    fn draw_scene(&mut self, ctx: &mut Context) {
-        self.scene.render(&mut self.tiles);
-        self.tiles.draw(ctx, self.viewport).clear();
-
-        if self.show_grid {
-            Grid::draw(ctx, self.viewport);
-        }
-    }
-
-    fn draw_tiles(&mut self, ctx: &mut Context) {}
-
-    fn handle_keys(&mut self) {
-        let g = self.keyboard.is_pressed(KeyCode::G);
-
-        if g {
-            self.show_grid = !self.show_grid;
-        }
-    }
 }
 
 impl EventHandler for Editor {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        self.viewport.set_size(ctx);
-        self.keyboard.update(ctx);
-
         let now = Instant::now();
-        let delta = now - self.now;
+        // let delta = now - self.now;
 
+        self.keyboard.update(ctx);
         self.handle_switch_view();
+
         match self.view {
             Views::Scene => {
-                self.update_scene(ctx, delta);
+                self.scene_view.events(&self.keyboard);
+                self.scene_view.update(ctx);
             }
             Views::Tiles => {
-                self.update_tiles(ctx, delta);
+                self.tiles_view.events(&self.keyboard);
+                self.tiles_view.update(ctx);
             }
         }
 
@@ -138,10 +99,10 @@ impl EventHandler for Editor {
 
         match self.view {
             Views::Scene => {
-                self.draw_scene(ctx);
+                self.scene_view.draw(ctx, &mut self.tiles);
             }
             Views::Tiles => {
-                self.draw_tiles(ctx);
+                self.tiles_view.draw(ctx, &mut self.tiles);
             }
         }
 

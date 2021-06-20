@@ -2,11 +2,13 @@ use super::*;
 
 mod editor;
 mod scene;
+mod scene_view;
 mod tiles_view;
 mod viewport;
 
 pub use editor::*;
 pub use scene::*;
+pub use scene_view::*;
 pub use tiles_view::*;
 pub use viewport::*;
 
