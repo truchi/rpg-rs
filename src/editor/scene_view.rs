@@ -19,7 +19,7 @@ impl View for SceneView {
         }
     }
 
-    fn events(&mut self, keyboard: &Keyboard) {
+    fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
         let maj = keyboard.is_active(KeyMods::SHIFT);
         let g = keyboard.is_pressed(KeyCode::G);
         let r = keyboard.is_pressed(KeyCode::R);

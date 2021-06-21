@@ -2,7 +2,7 @@ use super::*;
 
 pub trait View {
     fn new(ctx: &mut Context) -> Self;
-    fn events(&mut self, keyboard: &Keyboard);
+    fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard);
     fn update(&mut self, ctx: &mut Context);
     fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer);
 }
@@ -40,7 +40,7 @@ impl Editor {
             tiles_view:    TilesView::new(ctx),
             tile_renderer: TileRenderer::new(ctx),
             now:           Instant::now(),
-            view:          Views::Scene,
+            view:          Views::Tiles,
         }
     }
 
@@ -81,11 +81,11 @@ impl EventHandler for Editor {
 
         match self.view {
             Views::Scene => {
-                self.scene_view.events(&self.keyboard);
+                self.scene_view.events(ctx, &self.keyboard);
                 self.scene_view.update(ctx);
             }
             Views::Tiles => {
-                self.tiles_view.events(&self.keyboard);
+                self.tiles_view.events(ctx, &self.keyboard);
                 self.tiles_view.update(ctx);
             }
         }
