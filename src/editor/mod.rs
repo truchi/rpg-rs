@@ -104,12 +104,40 @@ elements!(
     ]
 );
 
+pub use Orientation::*;
+
 #[derive(Copy, Clone, Debug)]
-pub enum Direction {
-    N,
-    S,
-    W,
-    E,
+pub enum Orientation {
+    North,
+    East,
+    South,
+    West,
+}
+
+impl Orientation {
+    fn clockwise(&mut self) {
+        *self = match self {
+            North => West,
+            East => North,
+            South => East,
+            West => South,
+        }
+    }
+
+    fn counter_clockwise(&mut self) {
+        *self = match self {
+            North => East,
+            East => South,
+            South => West,
+            West => North,
+        }
+    }
+}
+
+impl Default for Orientation {
+    fn default() -> Self {
+        North
+    }
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -3,12 +3,12 @@ use super::*;
 pub struct Grid;
 
 impl Grid {
-    pub fn draw(ctx: &mut Context, viewport: Viewport) {
+    pub fn draw(ctx: &mut Context, viewport: Viewport, orientation: Orientation) {
         let mut grid = MeshBuilder::new();
         let mut base = MeshBuilder::new();
 
         Self::grid(&mut grid, viewport);
-        Self::base(&mut base, viewport);
+        Self::base(&mut base, viewport, orientation);
 
         let dest = |origin, tile| {
             if origin > 0. {
@@ -75,7 +75,7 @@ impl Grid {
         }
     }
 
-    fn base(mesh: &mut MeshBuilder, viewport: Viewport) {
+    fn base(mesh: &mut MeshBuilder, viewport: Viewport, orientation: Orientation) {
         let blue = Color::new(0., 0., 1., 1.);
         let w = viewport.tile().x;
         let h = viewport.tile().y;
@@ -84,8 +84,24 @@ impl Grid {
         Self::circle(mesh, (w + h) / 8., blue);
 
         // Base
-        Self::horizontal(mesh, 1., w, blue);
-        Self::vertical(mesh, 1., h, blue);
+        match orientation {
+            North => {
+                Self::horizontal(mesh, 1., w, blue);
+                Self::vertical(mesh, 1., h, blue);
+            }
+            East => {
+                Self::horizontal(mesh, 1., -w, blue);
+                Self::vertical(mesh, 1., h, blue);
+            }
+            South => {
+                Self::horizontal(mesh, 1., -w, blue);
+                Self::vertical(mesh, 1., -h, blue);
+            }
+            West => {
+                Self::horizontal(mesh, 1., w, blue);
+                Self::vertical(mesh, 1., -h, blue);
+            }
+        }
     }
 
     fn vertical(mesh: &mut MeshBuilder, x: f32, h: f32, color: Color) {

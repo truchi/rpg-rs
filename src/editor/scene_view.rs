@@ -9,7 +9,7 @@ pub struct SceneView {
 
 impl View for SceneView {
     fn new(ctx: &mut Context) -> Self {
-        let mut scene = Scene::default();
+        let mut scene = Scene::new();
         scene.make_rects();
 
         Self {
@@ -20,10 +20,20 @@ impl View for SceneView {
     }
 
     fn events(&mut self, keyboard: &Keyboard) {
+        let maj = keyboard.is_active(KeyMods::SHIFT);
         let g = keyboard.is_pressed(KeyCode::G);
+        let r = keyboard.is_pressed(KeyCode::R);
 
         if g {
             self.show_grid = !self.show_grid;
+        }
+
+        if r {
+            if maj {
+                self.scene.orientation.clockwise();
+            } else {
+                self.scene.orientation.counter_clockwise();
+            }
         }
 
         self.viewport.handle_keys(keyboard);
@@ -52,7 +62,7 @@ impl View for SceneView {
         tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if self.show_grid {
-            Grid::draw(ctx, self.viewport);
+            Grid::draw(ctx, self.viewport, self.scene.orientation);
         }
     }
 }

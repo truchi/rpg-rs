@@ -32,9 +32,7 @@ macro_rules! tiles {
 macro_rules! anims {
     ($(
         $l:literal $ANIM:ident
-        $(
-            $NAME:ident $x:literal $y:literal $w:literal $h:literal
-        )*
+        $($NAME:ident $x:literal $y:literal $w:literal $h:literal)*
     )*) => {
         impl Tile { $(
             pub const $ANIM: [Self; $l] = [$(Self::$NAME,)*];

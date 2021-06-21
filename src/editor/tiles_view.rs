@@ -32,7 +32,7 @@ impl View for TilesView {
                 Color::new(0., 1., 0., 1.),
             )
             .unwrap();
-            tile_renderer.add_raw(tile, [x, y], scale);
+            tile_renderer.add((tile, [x, y], scale));
         };
 
         for (i, floor) in Floor::all().iter().enumerate() {
