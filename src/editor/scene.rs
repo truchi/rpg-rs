@@ -3,6 +3,7 @@ use super::*;
 #[derive(Clone, Default, Debug)]
 pub struct Scene {
     pub floors:      HashMap<Point<i16>, Floor>,
+    pub corners:     HashMap<Point<i16>, Corner>,
     pub orientation: Orientation,
 }
 
@@ -10,6 +11,7 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             floors:      HashMap::default(),
+            corners:     HashMap::default(),
             orientation: North,
         }
     }

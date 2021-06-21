@@ -8,6 +8,10 @@ pub struct TilesView {
 impl TilesView {
     const SCALE: f32 = 2.;
 
+    pub fn new(ctx: &mut Context) -> Self {
+        Self { selected: None }
+    }
+
     pub fn selected(&self) -> Option<Tile> {
         if let Some(selected) = self.selected {
             Some(Self::TILES[selected].1)
@@ -15,18 +19,12 @@ impl TilesView {
             None
         }
     }
-}
 
-impl View for TilesView {
-    fn new(ctx: &mut Context) -> Self {
-        Self { selected: None }
-    }
-
-    fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
-        let pos = ggez::input::mouse::position(ctx);
+    pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
         let click = ggez::input::mouse::button_pressed(ctx, MouseButton::Left);
+
         if click {
-            dbg!(pos);
+            let pos = ggez::input::mouse::position(ctx);
             for (i, &(Point { x, y }, tile)) in Self::TILES.iter().enumerate() {
                 let x = x * TILE_WIDTH;
                 let y = y * TILE_HEIGHT;
@@ -44,9 +42,9 @@ impl View for TilesView {
         }
     }
 
-    fn update(&mut self, ctx: &mut Context) {}
+    pub fn update(&mut self, ctx: &mut Context) {}
 
-    fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
+    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
         for &(point, tile) in Self::TILES {
             tile_renderer.add((tile, point, Self::SCALE));
         }
