@@ -12,41 +12,6 @@ pub use scene_view::*;
 pub use tiles_view::*;
 pub use viewport::*;
 
-pub use Orientation::*;
-#[derive(Copy, Clone, Debug)]
-pub enum Orientation {
-    North,
-    East,
-    South,
-    West,
-}
-
-impl Orientation {
-    fn clockwise(&mut self) {
-        *self = match self {
-            North => West,
-            East => North,
-            South => East,
-            West => South,
-        }
-    }
-
-    fn counter_clockwise(&mut self) {
-        *self = match self {
-            North => East,
-            East => South,
-            South => West,
-            West => North,
-        }
-    }
-}
-
-impl Default for Orientation {
-    fn default() -> Self {
-        North
-    }
-}
-
 macro_rules! elements {
     ($($Name:ident $N:literal [$($Variant:ident $Tile:ident)*])*) => { $(
         #[derive(Copy, Clone, Debug)]
@@ -142,67 +107,5 @@ elements!(
 impl Default for Wall {
     fn default() -> Self {
         Self::Wall
-    }
-}
-
-//           north
-//             v
-//        0---------------0
-//        |    ^
-//        |  south
-//        |
-//        |
-// west > | < east
-//        |
-//        0
-#[derive(Copy, Clone, Default, Debug)]
-pub struct Corner(
-    Option<(/* north */ Wall, /* south */ Wall)>,
-    Option<(/* west */ Wall, /* east */ Wall)>,
-);
-
-impl Corner {
-    pub fn north(&self) -> Option<Wall> {
-        self.0.map(|(north, _)| north)
-    }
-
-    pub fn east(&self) -> Option<Wall> {
-        self.1.map(|(_, east)| east)
-    }
-
-    pub fn south(&self) -> Option<Wall> {
-        self.0.map(|(_, south)| south)
-    }
-
-    pub fn west(&self) -> Option<Wall> {
-        self.1.map(|(west, _)| west)
-    }
-
-    pub fn set_north(&mut self, north: Wall) {
-        self.0 = Some(match self.0 {
-            Some((_, south)) => (north, south),
-            None => (north, Default::default()),
-        });
-    }
-
-    pub fn set_east(&mut self, east: Wall) {
-        self.1 = Some(match self.1 {
-            Some((west, _)) => (west, east),
-            None => (Default::default(), east),
-        });
-    }
-
-    pub fn set_south(&mut self, south: Wall) {
-        self.0 = Some(match self.0 {
-            Some((north, _)) => (north, south),
-            None => (Default::default(), south),
-        });
-    }
-
-    pub fn set_west(&mut self, west: Wall) {
-        self.1 = Some(match self.1 {
-            Some((_, east)) => (west, east),
-            None => (west, Default::default()),
-        });
     }
 }

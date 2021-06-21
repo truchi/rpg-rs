@@ -2,23 +2,19 @@ use super::*;
 
 #[derive(Clone, Default, Debug)]
 pub struct Scene {
-    pub floors:      HashMap<Point<i16>, Floor>,
-    pub corners:     HashMap<Point<i16>, Corner>,
-    pub orientation: Orientation,
+    pub floors: HashMap<Point<i16>, Floor>,
 }
 
 impl Scene {
     pub fn new() -> Self {
         Self {
-            floors:      HashMap::default(),
-            corners:     HashMap::default(),
-            orientation: North,
+            floors: HashMap::default(),
         }
     }
 
     pub fn render(&self, tile_renderer: &mut TileRenderer) {
         for (pos, floor) in &self.floors {
-            tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32], self.orientation));
+            tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32]));
         }
     }
 

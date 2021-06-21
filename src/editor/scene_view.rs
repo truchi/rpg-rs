@@ -20,20 +20,10 @@ impl SceneView {
     }
 
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
-        let maj = keyboard.is_active(KeyMods::SHIFT);
         let g = keyboard.is_pressed(KeyCode::G);
-        let r = keyboard.is_pressed(KeyCode::R);
 
         if g {
             self.show_grid = !self.show_grid;
-        }
-
-        if r {
-            if maj {
-                self.scene.orientation.clockwise();
-            } else {
-                self.scene.orientation.counter_clockwise();
-            }
         }
 
         self.viewport.handle_keys(keyboard);
@@ -62,7 +52,7 @@ impl SceneView {
         tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if self.show_grid {
-            Grid::draw(ctx, self.viewport, self.scene.orientation);
+            Grid::draw(ctx, self.viewport);
         }
     }
 }
