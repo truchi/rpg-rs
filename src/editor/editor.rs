@@ -30,6 +30,7 @@ pub struct Editor {
     tile_renderer: TileRenderer,
     now:           Instant,
     view:          Views,
+    background:    Color,
 }
 
 impl Editor {
@@ -41,12 +42,22 @@ impl Editor {
             tile_renderer: TileRenderer::new(ctx),
             now:           Instant::now(),
             view:          Views::Tiles,
+            background:    Color::BLACK,
         }
     }
 
-    fn handle_switch_view(&mut self) {
+    fn events(&mut self) {
         if self.keyboard.is_pressed(KeyCode::Tab) {
             self.view.switch();
+        }
+
+        if self.keyboard.is_pressed(KeyCode::B) {
+            if self.background == Color::BLACK {
+                let mut rng = thread_rng();
+                self.background = Color::from_rgb(rng.gen(), rng.gen(), rng.gen());
+            } else {
+                self.background = Color::BLACK;
+            }
         }
     }
 
@@ -77,7 +88,7 @@ impl EventHandler for Editor {
         // let delta = now - self.now;
 
         self.keyboard.update(ctx);
-        self.handle_switch_view();
+        self.events();
 
         match self.view {
             Views::Scene => {
@@ -95,7 +106,7 @@ impl EventHandler for Editor {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        clear(ctx, Color::from_rgb(0, 0, 0));
+        clear(ctx, self.background);
         self.tile_renderer.clear();
 
         match self.view {
