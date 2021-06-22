@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Clone, Default, Debug)]
 pub struct Scene {
-    pub floors: HashMap<Point<i16>, (Floor, Orientation)>,
+    pub floors: HashMap<Point<i16>, (FloorEnum, Orientation)>,
     pub walls:  HashMap<Point<i16>, Walls>,
 }
 
@@ -35,20 +35,17 @@ impl Scene {
     }
 
     pub fn make_rects(&mut self) {
-        self.add_floor(Floor::Floor, North, (0..5, 0..5));
+        self.add_floor(Floor, North, (0..5, 0..5));
         self.walls(Walls::new(None, true, true), (5..10, 5..10));
         self.left_wall(true, (10..11, 0..5));
         self.right_wall(true, (15..16, 0..5));
-        self.bottom_wall(Some(Wall::RedBanner), (10..16, 10..11));
-        self.walls(
-            Walls::new(Some(Wall::RedBanner), true, true),
-            (10..16, 5..6),
-        );
+        self.bottom_wall(Some(RedBanner), (10..16, 10..11));
+        self.walls(Walls::new(Some(RedBanner), true, true), (10..16, 5..6));
     }
 
     pub fn add_floor(
         &mut self,
-        floor: Floor,
+        floor: FloorEnum,
         orientation: Orientation,
         (x, y): (Range<i16>, Range<i16>),
     ) {
@@ -89,7 +86,7 @@ impl Scene {
         }
     }
 
-    pub fn bottom_wall(&mut self, wall: Option<Wall>, (x, y): (Range<i16>, Range<i16>)) {
+    pub fn bottom_wall(&mut self, wall: Option<WallEnum>, (x, y): (Range<i16>, Range<i16>)) {
         for i in x {
             for j in y.clone() {
                 if let Some(Walls { bottom, .. }) = self.walls.get_mut(&([i, j].into())) {

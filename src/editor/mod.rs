@@ -18,6 +18,7 @@ macro_rules! elements {
     ($($Name:ident $N:literal [$($Variant:ident $Tile:ident)*])*) => { $(
         #[derive(Copy, Clone, Debug)]
         pub enum $Name { $($Variant,)* }
+        pub use $Name::*;
 
         impl $Name {
             pub fn random() -> Self {
@@ -44,7 +45,7 @@ macro_rules! elements {
 }
 
 elements!(
-    Floor 12 [
+    FloorEnum 12 [
         Floor   FLOOR_1
         Cracks1 FLOOR_2
         Cracks2 FLOOR_3
@@ -58,7 +59,7 @@ elements!(
         Hole    HOLE
         Edge    EDGE
     ]
-    Wall 10 [
+    WallEnum 10 [
         Wall            WALL_MID
         Column          WALL_COLUMN_MID
         SmallHole       WALL_HOLE_1
@@ -106,7 +107,7 @@ elements!(
     ]
 );
 
-impl Default for Wall {
+impl Default for WallEnum {
     fn default() -> Self {
         Self::Wall
     }
@@ -114,13 +115,13 @@ impl Default for Wall {
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Walls {
-    pub bottom: Option<Wall>,
+    pub bottom: Option<WallEnum>,
     pub left:   bool,
     pub right:  bool,
 }
 
 impl Walls {
-    pub fn new(bottom: Option<Wall>, left: bool, right: bool) -> Self {
+    pub fn new(bottom: Option<WallEnum>, left: bool, right: bool) -> Self {
         Self {
             bottom,
             left,
@@ -128,7 +129,7 @@ impl Walls {
         }
     }
 
-    pub fn with_bottom(bottom: Option<Wall>) -> Self {
+    pub fn with_bottom(bottom: Option<WallEnum>) -> Self {
         Self {
             bottom,
             ..Self::default()

@@ -127,7 +127,7 @@ impl SceneView {
                     if ctrl {
                         scene.remove_floor(ranges.clone());
                     } else {
-                        scene.add_floor(Floor::Cracks1, North, ranges.clone());
+                        scene.add_floor(Cracks1, North, ranges.clone());
                     }
                 });
             }
