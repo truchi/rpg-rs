@@ -43,4 +43,12 @@ impl Keyboard {
     pub fn is_active(&self, mods: KeyMods) -> bool {
         self.mods.contains(mods)
     }
+
+    pub fn ctrl(&self) -> bool {
+        self.is_active(KeyMods::CTRL)
+    }
+
+    pub fn shift(&self) -> bool {
+        self.is_active(KeyMods::SHIFT)
+    }
 }

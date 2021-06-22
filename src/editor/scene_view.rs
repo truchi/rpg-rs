@@ -1,38 +1,69 @@
 use super::*;
 
 #[derive(Copy, Clone, Debug)]
-pub enum FloorSelection {
+pub enum Selection {
     Start(Point<i16>),
     Select((Point<i16>, Point<i16>)),
-    None,
 }
 
-impl FloorSelection {
-    pub fn events(&mut self, ctx: &mut Context, mouse: &Mouse, viewport: Viewport) {
-        if mouse.left_press() {
-            let mouse = viewport.coordinates_i16(mouse.position());
-
-            *self = match *self {
-                Self::Start(point) => Self::Select((point, mouse)),
-                Self::Select((start, _)) => Self::Select((start, mouse)),
-                Self::None => Self::Start(mouse),
-            };
-        } else {
-            *self = Self::None;
-        }
+impl Selection {
+    pub fn start(position: Point<i16>) -> Self {
+        Self::Start(position)
     }
 
-    pub fn ranges(&self) -> Option<(bool, (Range<i16>, Range<i16>))> {
+    pub fn select(&mut self, position: Point<i16>) {
+        *self = match *self {
+            Self::Start(point) => Self::Select((point, position)),
+            Self::Select((start, _)) => Self::Select((start, position)),
+        };
+    }
+
+    pub fn ranges(&self) -> (bool, (Range<i16>, Range<i16>)) {
         match *self {
-            Self::Start(Point { x, y }) => Some((false, (x..x + 1, y..y + 1))),
-            Self::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => Some((
+            Self::Start(Point { x, y }) => (false, (x..x + 1, y..y + 1)),
+            Self::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => (
                 true,
                 (
                     if sx <= ex { sx..ex + 1 } else { ex..sx + 1 },
                     if sy <= ey { sy..ey + 1 } else { ey..sy + 1 },
                 ),
-            )),
-            Self::None => None,
+            ),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum FloorSelection {
+    Left(Selection),
+    Right(Selection),
+    None,
+}
+
+impl FloorSelection {
+    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport) {
+        let position = viewport.coordinates_i16(mouse.position());
+        let left = mouse.left_press();
+        let right = mouse.right_press();
+
+        match self {
+            Self::Left(selection) =>
+                if left {
+                    selection.select(position);
+                } else {
+                    *self = Self::None;
+                },
+            Self::Right(selection) =>
+                if right {
+                    selection.select(position);
+                } else {
+                    *self = Self::None;
+                },
+            Self::None =>
+                if left {
+                    *self = Self::Left(Selection::start(position));
+                } else if right {
+                    *self = Self::Right(Selection::start(position));
+                },
         }
     }
 }
@@ -62,7 +93,7 @@ impl SceneView {
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.handle_keys(keyboard);
         self.scene.events(keyboard);
-        self.floor_selection.events(ctx, mouse, self.viewport);
+        self.floor_selection.events(mouse, self.viewport);
 
         if keyboard.is_pressed(KeyCode::G) {
             self.show_grid = !self.show_grid;
@@ -70,29 +101,42 @@ impl SceneView {
     }
 
     pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
+        let ctrl = keyboard.ctrl();
+        let shift = keyboard.shift();
+
         self.viewport.set_size(ctx);
 
-        if let Some((undo, ranges)) = self.floor_selection.ranges() {
-            if undo {
-                self.scene.undo();
+        match self.floor_selection {
+            FloorSelection::Left(selection) => {
+                let (undo, ranges) = selection.ranges();
+                if undo {
+                    self.scene.undo();
+                }
+                self.scene
+                    .edit(|scene| scene.add_floor(Floor::Cracks1, North, ranges.clone()));
             }
-            self.scene
-                .edit(|scene| scene.add_floor(Floor::Cracks1, North, ranges.clone()));
-        }
+            FloorSelection::Right(selection) => {
+                let (undo, ranges) = selection.ranges();
+                if undo {
+                    self.scene.undo();
+                }
 
-        let Point { x, y } = self.viewport.coordinates_i16(mouse.position());
-
-        if mouse.right() {
-            self.scene.edit(|scene| {
-                scene.rotate_floor(
-                    (x..x + 1, y..y + 1),
-                    if keyboard.is_active(KeyMods::SHIFT) {
-                        Orientation::rotate_left
-                    } else {
-                        Orientation::rotate_right
-                    },
-                )
-            });
+                if ctrl {
+                    self.scene.edit(|scene| scene.remove_floor(ranges.clone()));
+                } else {
+                    self.scene.edit(|scene| {
+                        scene.rotate_floor(
+                            ranges.clone(),
+                            if shift {
+                                Orientation::rotate_left
+                            } else {
+                                Orientation::rotate_right
+                            },
+                        )
+                    });
+                }
+            }
+            _ => {}
         }
     }
 
@@ -157,8 +201,8 @@ impl<T: Clone> History<T> {
     }
 
     pub fn events(&mut self, keyboard: &Keyboard) {
-        let ctrl = keyboard.is_active(KeyMods::CTRL);
-        let shift = keyboard.is_active(KeyMods::SHIFT);
+        let ctrl = keyboard.ctrl();
+        let shift = keyboard.shift();
         let z = keyboard.is_pressed(KeyCode::Z);
 
         if ctrl && z {

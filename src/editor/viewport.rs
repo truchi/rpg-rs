@@ -111,7 +111,7 @@ impl Viewport {
     }
 
     pub fn handle_keys(&mut self, keyboard: &Keyboard) {
-        let ctrl = keyboard.is_active(KeyMods::CTRL);
+        let ctrl = keyboard.ctrl();
         let plus = keyboard.is_pressed(KeyCode::Plus);
         let minus = keyboard.is_pressed(KeyCode::Minus);
         let page_up = keyboard.is_pressed(KeyCode::PageUp);
