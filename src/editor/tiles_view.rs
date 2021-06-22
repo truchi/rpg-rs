@@ -20,11 +20,9 @@ impl TilesView {
         }
     }
 
-    pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
-        let click = ggez::input::mouse::button_pressed(ctx, MouseButton::Left);
-
-        if click {
-            let pos = ggez::input::mouse::position(ctx);
+    pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
+        if mouse.left() {
+            let pos = mouse.position();
             for (i, &(Point { x, y }, tile)) in Self::TILES.iter().enumerate() {
                 let x = x * TILE_WIDTH;
                 let y = y * TILE_HEIGHT;

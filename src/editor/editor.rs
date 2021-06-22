@@ -18,6 +18,7 @@ impl Views {
 #[derive(Debug)]
 pub struct Editor {
     keyboard:      Keyboard,
+    mouse:         Mouse,
     scene_view:    SceneView,
     tiles_view:    TilesView,
     tile_renderer: TileRenderer,
@@ -30,6 +31,7 @@ impl Editor {
     pub fn new(ctx: &mut Context) -> Self {
         Self {
             keyboard:      Keyboard::new(),
+            mouse:         Mouse::new(),
             scene_view:    SceneView::new(ctx),
             tiles_view:    TilesView::new(ctx),
             tile_renderer: TileRenderer::new(ctx),
@@ -81,15 +83,16 @@ impl EventHandler for Editor {
         // let delta = now - self.now;
 
         self.keyboard.update(ctx);
+        self.mouse.update(ctx);
         self.events();
 
         match self.view {
             Views::Scene => {
-                self.scene_view.events(ctx, &self.keyboard);
+                self.scene_view.events(ctx, &self.keyboard, &self.mouse);
                 self.scene_view.update(ctx);
             }
             Views::Tiles => {
-                self.tiles_view.events(ctx, &self.keyboard);
+                self.tiles_view.events(ctx, &self.keyboard, &self.mouse);
                 self.tiles_view.update(ctx);
             }
         }

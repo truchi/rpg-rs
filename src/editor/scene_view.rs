@@ -8,11 +8,10 @@ pub enum FloorSelection {
 }
 
 impl FloorSelection {
-    pub fn events(&mut self, ctx: &mut Context, viewport: Viewport) {
-        let mouse = ggez::input::mouse::position(ctx);
-        let mouse = viewport.coordinates_i16(mouse);
+    pub fn events(&mut self, ctx: &mut Context, mouse: &Mouse, viewport: Viewport) {
+        if mouse.left_press() {
+            let mouse = viewport.coordinates_i16(mouse.position());
 
-        if ggez::input::mouse::button_pressed(ctx, MouseButton::Left) {
             *self = match *self {
                 Self::Start(point) => Self::Select((point, mouse)),
                 Self::Select((start, _)) => Self::Select((start, mouse)),
@@ -60,10 +59,10 @@ impl SceneView {
         }
     }
 
-    pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
+    pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.handle_keys(keyboard);
         self.scene.events(keyboard);
-        self.floor_selection.events(ctx, self.viewport);
+        self.floor_selection.events(ctx, mouse, self.viewport);
 
         if keyboard.is_pressed(KeyCode::G) {
             self.show_grid = !self.show_grid;
