@@ -93,7 +93,7 @@ impl EventHandler for Editor {
             }
             Views::Tiles => {
                 self.tiles_view.events(ctx, &self.keyboard, &self.mouse);
-                self.tiles_view.update(ctx);
+                self.tiles_view.update(ctx, &mut self.scene_view.pencil);
             }
         }
 

@@ -1,11 +1,20 @@
 use super::*;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Pencil {
+    Floor((FloorEnum, Orientation)),
+    BottomWall(WallEnum),
+    LeftWall,
+    RightWall,
+}
+
 #[derive(Clone, Debug)]
 pub struct SceneView {
-    scene:     History<Scene>,
-    viewport:  Viewport,
-    show_grid: bool,
-    selection: Selection,
+    scene:      History<Scene>,
+    viewport:   Viewport,
+    show_grid:  bool,
+    selection:  Selection,
+    pub pencil: Option<Pencil>,
 }
 
 impl SceneView {
@@ -19,6 +28,7 @@ impl SceneView {
             viewport: Viewport::new(ctx),
             show_grid: false,
             selection: Selection::None,
+            pencil: None,
         }
     }
 
@@ -33,10 +43,27 @@ impl SceneView {
     }
 
     pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
+        self.viewport.set_size(ctx);
+
+        if let Some(pencil) = self.pencil {
+            match pencil {
+                Pencil::Floor((floor, orientation)) =>
+                    self.update_floor(keyboard, floor, orientation),
+                Pencil::BottomWall(_wall) => {}
+                Pencil::LeftWall => {}
+                Pencil::RightWall => {}
+            }
+        }
+    }
+
+    pub fn update_floor(
+        &mut self,
+        keyboard: &Keyboard,
+        floor: FloorEnum,
+        orientation: Orientation,
+    ) {
         let ctrl = keyboard.ctrl();
         let shift = keyboard.shift();
-
-        self.viewport.set_size(ctx);
 
         match self.selection {
             Selection::Left(selection) => {
@@ -44,11 +71,12 @@ impl SceneView {
                 if undo {
                     self.scene.undo();
                 }
+
                 self.scene.edit(|scene| {
                     if ctrl {
                         scene.remove_floor(ranges.clone());
                     } else {
-                        scene.add_floor(Cracks1, North, ranges.clone());
+                        scene.add_floor(floor, orientation, ranges.clone());
                     }
                 });
             }
@@ -73,7 +101,7 @@ impl SceneView {
                     });
                 }
             }
-            _ => {}
+            Selection::None => {}
         }
     }
 

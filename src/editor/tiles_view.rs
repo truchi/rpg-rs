@@ -12,18 +12,12 @@ impl TilesView {
         Self { selected: None }
     }
 
-    pub fn selected(&self) -> Option<Tile> {
-        if let Some(selected) = self.selected {
-            Some(Self::TILES[selected].1)
-        } else {
-            None
-        }
-    }
-
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         if mouse.left() {
             let pos = mouse.position();
-            for (i, &(Point { x, y }, tile)) in Self::TILES.iter().enumerate() {
+
+            for (i, &(Point { x, y }, element)) in Self::ELEMENTS.iter().enumerate() {
+                let tile = element.tile();
                 let x = x * TILE_WIDTH;
                 let y = y * TILE_HEIGHT;
                 let width = Self::SCALE * tile.w as f32;
@@ -40,17 +34,31 @@ impl TilesView {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context) {}
+    pub fn update(&mut self, ctx: &mut Context, pencil: &mut Option<Pencil>) {
+        if let Some(selected) = self.selected {
+            match Self::ELEMENTS[selected].1 {
+                Element::Floor(floor) => {
+                    *pencil = Some(Pencil::Floor((floor, North)));
+                }
+                Element::Wall(wall) => {
+                    *pencil = Some(Pencil::BottomWall(wall));
+                }
+            }
+        } else {
+            *pencil = None;
+        }
+    }
 
     pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
-        for &(point, tile) in Self::TILES {
-            tile_renderer.add((tile, point, Self::SCALE));
+        for &(point, element) in Self::ELEMENTS {
+            tile_renderer.add((element.tile(), point, Self::SCALE));
         }
 
         tile_renderer.draw(ctx, [0., 0.], 1.);
 
         if let Some(selected) = self.selected {
-            let (Point { x, y }, tile) = Self::TILES[selected];
+            let (Point { x, y }, element) = Self::ELEMENTS[selected];
+            let tile = element.tile();
             let width = Self::SCALE * tile.w as f32;
             let height = Self::SCALE * tile.h as f32;
             let green = Color::new(0., 1., 0., 1.);
@@ -77,29 +85,31 @@ impl TilesView {
 }
 
 impl TilesView {
-    const TILES: &'static [(Point, Tile)] = &[
-        (Point { x: 1., y: 1. }, Tile::FLOOR_1),
-        (Point { x: 4., y: 1. }, Tile::FLOOR_2),
-        (Point { x: 7., y: 1. }, Tile::FLOOR_3),
-        (Point { x: 10., y: 1. }, Tile::FLOOR_4),
-        (Point { x: 13., y: 1. }, Tile::FLOOR_5),
-        (Point { x: 16., y: 1. }, Tile::FLOOR_6),
-        (Point { x: 19., y: 1. }, Tile::FLOOR_7),
-        (Point { x: 22., y: 1. }, Tile::FLOOR_8),
-        (Point { x: 25., y: 1. }, Tile::FLOOR_LADDER),
-        (Point { x: 28., y: 1. }, Tile::FLOOR_SPIKES_ANIM_0),
-        (Point { x: 31., y: 1. }, Tile::HOLE),
-        (Point { x: 34., y: 1. }, Tile::EDGE),
-        (Point { x: 1., y: 4. }, Tile::WALL_MID),
-        (Point { x: 4., y: 4. }, Tile::WALL_COLUMN_MID),
-        (Point { x: 7., y: 4. }, Tile::WALL_HOLE_1),
-        (Point { x: 10., y: 4. }, Tile::WALL_HOLE_2),
-        (Point { x: 13., y: 4. }, Tile::WALL_BANNER_RED),
-        (Point { x: 16., y: 4. }, Tile::WALL_BANNER_GREEN),
-        (Point { x: 19., y: 4. }, Tile::WALL_BANNER_BLUE),
-        (Point { x: 22., y: 4. }, Tile::WALL_BANNER_YELLOW),
-        (Point { x: 25., y: 4. }, Tile::WALL_FOUNTAIN_MID_RED_ANIM_0),
-        (Point { x: 28., y: 4. }, Tile::WALL_FOUNTAIN_MID_BLUE_ANIM_0),
+    const ELEMENTS: &'static [(Point, Element)] = &[
+        // Floors
+        (Point { x: 1., y: 1. }, Element::Floor(Floor)),
+        (Point { x: 4., y: 1. }, Element::Floor(Cracks1)),
+        (Point { x: 7., y: 1. }, Element::Floor(Cracks2)),
+        (Point { x: 10., y: 1. }, Element::Floor(Cracks3)),
+        (Point { x: 13., y: 1. }, Element::Floor(Cracks4)),
+        (Point { x: 16., y: 1. }, Element::Floor(Cracks5)),
+        (Point { x: 19., y: 1. }, Element::Floor(Cracks6)),
+        (Point { x: 22., y: 1. }, Element::Floor(Cracks7)),
+        (Point { x: 25., y: 1. }, Element::Floor(Ladder)),
+        (Point { x: 28., y: 1. }, Element::Floor(Spikes)),
+        (Point { x: 31., y: 1. }, Element::Floor(Hole)),
+        (Point { x: 34., y: 1. }, Element::Floor(Edge)),
+        (Point { x: 1., y: 4. }, Element::Wall(Wall)),
+        (Point { x: 4., y: 4. }, Element::Wall(SmallHole)),
+        (Point { x: 7., y: 4. }, Element::Wall(BigHole)),
+        (Point { x: 10., y: 4. }, Element::Wall(RedBanner)),
+        (Point { x: 13., y: 4. }, Element::Wall(GreenBanner)),
+        (Point { x: 16., y: 4. }, Element::Wall(BlueBanner)),
+        (Point { x: 19., y: 4. }, Element::Wall(YellowBanner)),
+        (Point { x: 22., y: 4. }, Element::Wall(LavaFountain)),
+        (Point { x: 25., y: 4. }, Element::Wall(WaterFountain)),
+        (Point { x: 28., y: 4. }, Element::Wall(Goo)),
+        /*
         (Point { x: 1., y: 7. }, Tile::ELF_M_IDLE_ANIM_0),
         (Point { x: 4., y: 7. }, Tile::ELF_F_IDLE_ANIM_0),
         (Point { x: 7., y: 7. }, Tile::KNIGHT_M_IDLE_ANIM_0),
@@ -162,5 +172,6 @@ impl TilesView {
         (Point { x: 34., y: 27. }, Tile::CHEST_MIMIC_OPEN_ANIM_0),
         (Point { x: 37., y: 27. }, Tile::CRATE),
         (Point { x: 40., y: 27. }, Tile::SKULL),
+        */
     ];
 }

@@ -61,7 +61,7 @@ elements!(
     ]
     WallEnum 10 [
         Wall            WALL_MID
-        Column          WALL_COLUMN_MID
+        // Column          WALL_COLUMN_MID
         SmallHole       WALL_HOLE_1
         BigHole         WALL_HOLE_2
         RedBanner       WALL_BANNER_RED
@@ -70,7 +70,9 @@ elements!(
         YellowBanner    WALL_BANNER_YELLOW
         LavaFountain    WALL_FOUNTAIN_MID_RED_ANIM_0
         WaterFountain   WALL_FOUNTAIN_MID_BLUE_ANIM_0
+        Goo             WALL_GOO
     ]
+    /*
     Creature 22 [
         // Hero
         MaleElf         ELF_M_IDLE_ANIM_0
@@ -105,11 +107,27 @@ elements!(
         BigZombie       BIG_ZOMBIE_IDLE_ANIM_0 // Undead
         Ogre            OGRE_IDLE_ANIM_0       // Orc
     ]
+    */
 );
 
 impl Default for WallEnum {
     fn default() -> Self {
         Self::Wall
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Element {
+    Floor(FloorEnum),
+    Wall(WallEnum),
+}
+
+impl Element {
+    pub fn tile(&self) -> Tile {
+        match self {
+            Self::Floor(floor) => floor.tile(),
+            Self::Wall(wall) => wall.tile(),
+        }
     }
 }
 
