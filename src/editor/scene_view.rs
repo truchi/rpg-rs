@@ -8,6 +8,44 @@ pub enum Pencil {
     RightWall,
 }
 
+impl Pencil {
+    pub fn events(&mut self, keyboard: &Keyboard) {
+        let shift = keyboard.shift();
+
+        if keyboard.is_pressed(KeyCode::R) {
+            *self = match *self {
+                Self::Floor((floor, mut orientation)) => Self::Floor((floor, {
+                    if shift {
+                        orientation.rotate_left();
+                    } else {
+                        orientation.rotate_right();
+                    }
+                    orientation
+                })),
+                Self::BottomWall(wall) =>
+                    if shift {
+                        Self::RightWall
+                    } else {
+                        Self::LeftWall
+                    },
+                Self::LeftWall =>
+                    if shift {
+                        Self::BottomWall(Default::default())
+                    } else {
+                        Self::RightWall
+                    },
+                Self::RightWall =>
+                    if shift {
+                        Self::LeftWall
+                    } else {
+                        Self::BottomWall(Default::default())
+                    },
+            }
+        } else {
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SceneView {
     scene:      History<Scene>,
@@ -36,6 +74,9 @@ impl SceneView {
         self.viewport.handle_keys(keyboard);
         self.scene.events(keyboard);
         self.selection.events(mouse, self.viewport);
+        if let Some(pencil) = &mut self.pencil {
+            pencil.events(keyboard);
+        }
 
         if keyboard.is_pressed(KeyCode::G) {
             self.show_grid = !self.show_grid;
@@ -49,9 +90,10 @@ impl SceneView {
             match pencil {
                 Pencil::Floor((floor, orientation)) =>
                     self.update_floor(keyboard, floor, orientation),
-                Pencil::BottomWall(_wall) => {}
-                Pencil::LeftWall => {}
-                Pencil::RightWall => {}
+                Pencil::BottomWall(wall) =>
+                    self.update_walls(keyboard, Scene::bottom_wall, Some(wall)),
+                Pencil::LeftWall => self.update_walls(keyboard, Scene::left_wall, true),
+                Pencil::RightWall => self.update_walls(keyboard, Scene::right_wall, true),
             }
         }
     }
@@ -86,10 +128,10 @@ impl SceneView {
                     self.scene.undo();
                 }
 
-                if ctrl {
-                    self.scene.edit(|scene| scene.remove_floor(ranges.clone()));
-                } else {
-                    self.scene.edit(|scene| {
+                self.scene.edit(|scene| {
+                    if ctrl {
+                        scene.remove_floor(ranges.clone())
+                    } else {
                         scene.rotate_floor(
                             ranges.clone(),
                             if shift {
@@ -98,10 +140,36 @@ impl SceneView {
                                 Orientation::rotate_right
                             },
                         )
-                    });
-                }
+                    }
+                });
             }
-            Selection::None => {}
+            _ => {}
+        }
+    }
+
+    pub fn update_walls<F, T>(&mut self, keyboard: &Keyboard, f: F, arg: T)
+    where
+        F: Fn(&mut Scene, T, (Range<i16>, Range<i16>)),
+        T: Copy + Default,
+    {
+        let ctrl = keyboard.ctrl();
+
+        match self.selection {
+            Selection::Left(selection) => {
+                let (undo, ranges) = selection.ranges();
+                if undo {
+                    self.scene.undo();
+                }
+
+                self.scene.edit(|scene| {
+                    if ctrl {
+                        f(scene, Default::default(), ranges.clone());
+                    } else {
+                        f(scene, arg, ranges.clone());
+                    }
+                });
+            }
+            _ => {}
         }
     }
 
