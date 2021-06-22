@@ -1,17 +1,17 @@
 use super::*;
 
 #[derive(Copy, Clone, Debug)]
-pub enum Selection {
-    Start(Point<i16>),
-    Select((Point<i16>, Point<i16>)),
+pub enum ButtonSelection<T = Point> {
+    Start(T),
+    Select((T, T)),
 }
 
-impl Selection {
-    pub fn start(position: Point<i16>) -> Self {
+impl ButtonSelection {
+    pub fn start(position: Point) -> Self {
         Self::Start(position)
     }
 
-    pub fn select(&mut self, position: Point<i16>) {
+    pub fn select(&mut self, position: Point) {
         *self = match *self {
             Self::Start(point) => Self::Select((point, position)),
             Self::Select((start, _)) => Self::Select((start, position)),
@@ -19,9 +19,9 @@ impl Selection {
     }
 
     pub fn ranges(&self) -> (bool, (Range<i16>, Range<i16>)) {
-        match *self {
-            Self::Start(Point { x, y }) => (false, (x..x + 1, y..y + 1)),
-            Self::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => (
+        match self.as_i16() {
+            ButtonSelection::Start(Point { x, y }) => (false, (x..x + 1, y..y + 1)),
+            ButtonSelection::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => (
                 true,
                 (
                     if sx <= ex { sx..ex + 1 } else { ex..sx + 1 },
@@ -30,18 +30,29 @@ impl Selection {
             ),
         }
     }
+
+    fn as_i16(&self) -> ButtonSelection<Point<i16>> {
+        fn i(point: Point) -> Point<i16> {
+            [point.x.floor() as _, point.y.floor() as _].into()
+        }
+
+        match *self {
+            Self::Start(point) => ButtonSelection::Start(i(point)),
+            Self::Select((start, end)) => ButtonSelection::Select((i(start), i(end))),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum FloorSelection {
-    Left(Selection),
-    Right(Selection),
+pub enum Selection {
+    Left(ButtonSelection),
+    Right(ButtonSelection),
     None,
 }
 
-impl FloorSelection {
+impl Selection {
     pub fn events(&mut self, mouse: &Mouse, viewport: Viewport) {
-        let position = viewport.coordinates_i16(mouse.position());
+        let position = viewport.coordinates(mouse.position());
         let left = mouse.left_press();
         let right = mouse.right_press();
 
@@ -60,9 +71,9 @@ impl FloorSelection {
                 },
             Self::None =>
                 if left {
-                    *self = Self::Left(Selection::start(position));
+                    *self = Self::Left(ButtonSelection::start(position));
                 } else if right {
-                    *self = Self::Right(Selection::start(position));
+                    *self = Self::Right(ButtonSelection::start(position));
                 },
         }
     }
@@ -70,10 +81,10 @@ impl FloorSelection {
 
 #[derive(Clone, Debug)]
 pub struct SceneView {
-    scene:           History<Scene>,
-    viewport:        Viewport,
-    show_grid:       bool,
-    floor_selection: FloorSelection,
+    scene:     History<Scene>,
+    viewport:  Viewport,
+    show_grid: bool,
+    selection: Selection,
 }
 
 impl SceneView {
@@ -86,14 +97,14 @@ impl SceneView {
             scene,
             viewport: Viewport::new(ctx),
             show_grid: false,
-            floor_selection: FloorSelection::None,
+            selection: Selection::None,
         }
     }
 
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.handle_keys(keyboard);
         self.scene.events(keyboard);
-        self.floor_selection.events(mouse, self.viewport);
+        self.selection.events(mouse, self.viewport);
 
         if keyboard.is_pressed(KeyCode::G) {
             self.show_grid = !self.show_grid;
@@ -106,8 +117,8 @@ impl SceneView {
 
         self.viewport.set_size(ctx);
 
-        match self.floor_selection {
-            FloorSelection::Left(selection) => {
+        match self.selection {
+            Selection::Left(selection) => {
                 let (undo, ranges) = selection.ranges();
                 if undo {
                     self.scene.undo();
@@ -120,7 +131,7 @@ impl SceneView {
                     }
                 });
             }
-            FloorSelection::Right(selection) => {
+            Selection::Right(selection) => {
                 let (undo, ranges) = selection.ranges();
                 if undo {
                     self.scene.undo();
