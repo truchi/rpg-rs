@@ -34,7 +34,7 @@ impl Editor {
             tiles_view:    TilesView::new(ctx),
             tile_renderer: TileRenderer::new(ctx),
             now:           Instant::now(),
-            view:          Views::Tiles,
+            view:          Views::Scene,
             background:    Color::BLACK,
         }
     }

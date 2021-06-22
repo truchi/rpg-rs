@@ -109,3 +109,45 @@ impl Default for Wall {
         Self::Wall
     }
 }
+
+#[derive(Copy, Clone, Default, Debug)]
+pub struct Walls {
+    pub top:   Option<Wall>,
+    pub left:  bool,
+    pub right: bool,
+}
+
+impl Walls {
+    pub fn new(top: Option<Wall>, left: bool, right: bool) -> Self {
+        Self { top, left, right }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Orientation {
+    North,
+    East,
+    South,
+    West,
+}
+pub use Orientation::*;
+
+impl Orientation {
+    pub fn rotate_right(&mut self) {
+        *self = match self {
+            North => East,
+            East => South,
+            South => West,
+            West => North,
+        }
+    }
+
+    pub fn rotate_left(&mut self) {
+        *self = match self {
+            North => West,
+            East => North,
+            South => East,
+            West => South,
+        }
+    }
+}

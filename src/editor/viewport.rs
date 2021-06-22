@@ -149,4 +149,22 @@ impl Viewport {
             self.rect.x += self.rect.w / steps;
         }
     }
+
+    pub fn coordinates(&self, position: impl Into<Point>) -> Point {
+        let position = position.into();
+        let origin = self.origin();
+        let scale = self.scale();
+
+        [
+            (position.x - origin.x) / (scale * TILE_WIDTH),
+            (position.y - origin.y) / (scale * TILE_HEIGHT),
+        ]
+        .into()
+    }
+
+    pub fn coordinates_i16(&self, position: impl Into<Point>) -> Point<i16> {
+        let Point { x, y } = self.coordinates(position);
+
+        [x.floor() as _, y.floor() as _].into()
+    }
 }
