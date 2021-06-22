@@ -20,8 +20,8 @@ impl Scene {
         }
 
         for (pos, walls) in &self.walls {
-            if let Some(wall) = walls.top {
-                tile_renderer.add((wall.tile(), [pos.x as f32, (pos.y - 1) as f32]));
+            if let Some(wall) = walls.bottom {
+                tile_renderer.add((wall.tile(), [pos.x as f32, pos.y as f32]));
             }
 
             if walls.left {
@@ -37,9 +37,13 @@ impl Scene {
     pub fn make_rects(&mut self) {
         self.add_floor(Floor::Floor, North, (0..5, 0..5));
         self.walls(Walls::new(None, true, true), (5..10, 5..10));
-        self.top_wall(Some(Wall::RedBanner), (10..15, 0..1));
         self.left_wall(true, (10..11, 0..5));
         self.right_wall(true, (15..16, 0..5));
+        self.bottom_wall(Some(Wall::RedBanner), (10..16, 10..11));
+        self.walls(
+            Walls::new(Some(Wall::RedBanner), true, true),
+            (10..16, 5..6),
+        );
     }
 
     pub fn add_floor(
@@ -85,13 +89,13 @@ impl Scene {
         }
     }
 
-    pub fn top_wall(&mut self, wall: Option<Wall>, (x, y): (Range<i16>, Range<i16>)) {
+    pub fn bottom_wall(&mut self, wall: Option<Wall>, (x, y): (Range<i16>, Range<i16>)) {
         for i in x {
             for j in y.clone() {
-                if let Some(Walls { top, .. }) = self.walls.get_mut(&([i, j].into())) {
-                    *top = wall;
+                if let Some(Walls { bottom, .. }) = self.walls.get_mut(&([i, j].into())) {
+                    *bottom = wall;
                 } else {
-                    self.walls.insert([i, j].into(), Walls::with_top(wall));
+                    self.walls.insert([i, j].into(), Walls::with_bottom(wall));
                 }
             }
         }

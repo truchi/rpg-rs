@@ -112,19 +112,23 @@ impl Default for Wall {
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Walls {
-    pub top:   Option<Wall>,
-    pub left:  bool,
-    pub right: bool,
+    pub bottom: Option<Wall>,
+    pub left:   bool,
+    pub right:  bool,
 }
 
 impl Walls {
-    pub fn new(top: Option<Wall>, left: bool, right: bool) -> Self {
-        Self { top, left, right }
+    pub fn new(bottom: Option<Wall>, left: bool, right: bool) -> Self {
+        Self {
+            bottom,
+            left,
+            right,
+        }
     }
 
-    pub fn with_top(top: Option<Wall>) -> Self {
+    pub fn with_bottom(bottom: Option<Wall>) -> Self {
         Self {
-            top,
+            bottom,
             ..Self::default()
         }
     }
