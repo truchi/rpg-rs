@@ -121,6 +121,27 @@ impl Walls {
     pub fn new(top: Option<Wall>, left: bool, right: bool) -> Self {
         Self { top, left, right }
     }
+
+    pub fn with_top(top: Option<Wall>) -> Self {
+        Self {
+            top,
+            ..Self::default()
+        }
+    }
+
+    pub fn with_left() -> Self {
+        Self {
+            left: true,
+            ..Self::default()
+        }
+    }
+
+    pub fn with_right() -> Self {
+        Self {
+            right: true,
+            ..Self::default()
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]

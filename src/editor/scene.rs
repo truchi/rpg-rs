@@ -35,7 +35,11 @@ impl Scene {
     }
 
     pub fn make_rects(&mut self) {
-        self.add_floor(Floor::Floor, North, (0..10, 0..10));
+        self.add_floor(Floor::Floor, North, (0..5, 0..5));
+        self.walls(Walls::new(None, true, true), (5..10, 5..10));
+        self.top_wall(Some(Wall::RedBanner), (10..15, 0..1));
+        self.left_wall(true, (10..11, 0..5));
+        self.right_wall(true, (15..16, 0..5));
     }
 
     pub fn add_floor(
@@ -69,6 +73,50 @@ impl Scene {
                 self.floors
                     .get_mut(&([i, j].into()))
                     .map(|(_, o)| rotate(o));
+            }
+        }
+    }
+
+    pub fn walls(&mut self, walls: Walls, (x, y): (Range<i16>, Range<i16>)) {
+        for i in x {
+            for j in y.clone() {
+                self.walls.insert([i, j].into(), walls);
+            }
+        }
+    }
+
+    pub fn top_wall(&mut self, wall: Option<Wall>, (x, y): (Range<i16>, Range<i16>)) {
+        for i in x {
+            for j in y.clone() {
+                if let Some(Walls { top, .. }) = self.walls.get_mut(&([i, j].into())) {
+                    *top = wall;
+                } else {
+                    self.walls.insert([i, j].into(), Walls::with_top(wall));
+                }
+            }
+        }
+    }
+
+    pub fn left_wall(&mut self, bool: bool, (x, y): (Range<i16>, Range<i16>)) {
+        for i in x {
+            for j in y.clone() {
+                if let Some(Walls { left, .. }) = self.walls.get_mut(&([i, j].into())) {
+                    *left = bool;
+                } else {
+                    self.walls.insert([i, j].into(), Walls::with_left());
+                }
+            }
+        }
+    }
+
+    pub fn right_wall(&mut self, bool: bool, (x, y): (Range<i16>, Range<i16>)) {
+        for i in x {
+            for j in y.clone() {
+                if let Some(Walls { right, .. }) = self.walls.get_mut(&([i, j].into())) {
+                    *right = bool;
+                } else {
+                    self.walls.insert([i, j].into(), Walls::with_right());
+                }
             }
         }
     }
