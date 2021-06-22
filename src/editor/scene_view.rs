@@ -62,6 +62,8 @@ impl SceneView {
 
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
         self.viewport.handle_keys(keyboard);
+        self.scene.events(keyboard);
+        self.floor_selection.events(ctx, self.viewport);
 
         if keyboard.is_pressed(KeyCode::G) {
             self.show_grid = !self.show_grid;
@@ -70,7 +72,6 @@ impl SceneView {
 
     pub fn update(&mut self, ctx: &mut Context) {
         self.viewport.set_size(ctx);
-        self.floor_selection.events(ctx, self.viewport);
     }
 
     pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
@@ -138,6 +139,20 @@ impl<T: Clone> History<T> {
             true
         } else {
             false
+        }
+    }
+
+    pub fn events(&mut self, keyboard: &Keyboard) {
+        let ctrl = keyboard.is_active(KeyMods::CTRL);
+        let shift = keyboard.is_active(KeyMods::SHIFT);
+        let z = keyboard.is_pressed(KeyCode::Z);
+
+        if ctrl && z {
+            if shift {
+                self.redo();
+            } else {
+                self.undo();
+            }
         }
     }
 
