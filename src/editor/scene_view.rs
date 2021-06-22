@@ -112,8 +112,13 @@ impl SceneView {
                 if undo {
                     self.scene.undo();
                 }
-                self.scene
-                    .edit(|scene| scene.add_floor(Floor::Cracks1, North, ranges.clone()));
+                self.scene.edit(|scene| {
+                    if ctrl {
+                        scene.remove_floor(ranges.clone());
+                    } else {
+                        scene.add_floor(Floor::Cracks1, North, ranges.clone());
+                    }
+                });
             }
             FloorSelection::Right(selection) => {
                 let (undo, ranges) = selection.ranges();
