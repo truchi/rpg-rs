@@ -89,7 +89,7 @@ impl EventHandler for Editor {
         match self.view {
             Views::Scene => {
                 self.scene_view.events(ctx, &self.keyboard, &self.mouse);
-                self.scene_view.update(ctx);
+                self.scene_view.update(ctx, &self.keyboard, &self.mouse);
             }
             Views::Tiles => {
                 self.tiles_view.events(ctx, &self.keyboard, &self.mouse);

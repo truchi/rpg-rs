@@ -139,7 +139,7 @@ impl Orientation {
             East => South,
             South => West,
             West => North,
-        }
+        };
     }
 
     pub fn rotate_left(&mut self) {
@@ -148,6 +148,6 @@ impl Orientation {
             East => North,
             South => East,
             West => South,
-        }
+        };
     }
 }

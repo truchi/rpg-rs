@@ -15,8 +15,8 @@ impl Scene {
     }
 
     pub fn render(&self, tile_renderer: &mut TileRenderer) {
-        for (pos, (floor, _)) in &self.floors {
-            tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32]));
+        for (pos, &(floor, orientation)) in &self.floors {
+            tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32], orientation));
         }
 
         for (pos, walls) in &self.walls {
@@ -61,8 +61,8 @@ impl Scene {
 
     pub fn rotate_floor(
         &mut self,
-        rotate: impl Fn(&mut Orientation),
         (x, y): (Range<i16>, Range<i16>),
+        rotate: impl Fn(&mut Orientation),
     ) {
         for i in x {
             for j in y.clone() {

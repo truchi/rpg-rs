@@ -69,21 +69,36 @@ impl SceneView {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context) {
+    pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.set_size(ctx);
-    }
-
-    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
-        self.scene.get().render(tile_renderer);
-        tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if let Some((undo, ranges)) = self.floor_selection.ranges() {
             if undo {
                 self.scene.undo();
             }
             self.scene
-                .edit(|scene| scene.add_floor(Floor::Floor, North, ranges.clone()));
+                .edit(|scene| scene.add_floor(Floor::Cracks1, North, ranges.clone()));
         }
+
+        let Point { x, y } = self.viewport.coordinates_i16(mouse.position());
+
+        if mouse.right() {
+            self.scene.edit(|scene| {
+                scene.rotate_floor(
+                    (x..x + 1, y..y + 1),
+                    if keyboard.is_active(KeyMods::SHIFT) {
+                        Orientation::rotate_left
+                    } else {
+                        Orientation::rotate_right
+                    },
+                )
+            });
+        }
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
+        self.scene.get().render(tile_renderer);
+        tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if self.show_grid {
             Grid::draw(ctx, self.viewport);
