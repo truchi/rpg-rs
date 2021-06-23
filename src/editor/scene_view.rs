@@ -1,10 +1,59 @@
 use super::*;
 
+#[derive(Copy, Clone, Debug)]
+pub struct Show {
+    floors: bool,
+    walls:  bool,
+    grid:   bool,
+}
+
+impl Show {
+    pub fn new() -> Self {
+        Self {
+            floors: true,
+            walls:  true,
+            grid:   false,
+        }
+    }
+
+    pub fn floors(&self) -> bool {
+        self.floors
+    }
+
+    pub fn walls(&self) -> bool {
+        self.walls
+    }
+
+    pub fn grid(&self) -> bool {
+        self.grid
+    }
+
+    pub fn show_floors(&mut self) {
+        self.floors = true;
+    }
+
+    pub fn show_walls(&mut self) {
+        self.walls = true;
+    }
+
+    pub fn events(&mut self, keyboard: &Keyboard) {
+        if keyboard.is_pressed(KeyCode::F) {
+            self.floors = !self.floors;
+        }
+        if keyboard.is_pressed(KeyCode::W) {
+            self.walls = !self.walls;
+        }
+        if keyboard.is_pressed(KeyCode::G) {
+            self.grid = !self.grid;
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SceneView {
     scene:      History<Scene>,
     viewport:   Viewport,
-    show_grid:  bool,
+    show:       Show,
     selection:  Selection,
     pub pencil: Option<Pencil>,
 }
@@ -18,7 +67,7 @@ impl SceneView {
         Self {
             scene,
             viewport: Viewport::new(ctx),
-            show_grid: false,
+            show: Show::new(),
             selection: Selection::None,
             pencil: None,
         }
@@ -26,14 +75,11 @@ impl SceneView {
 
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.handle_keys(keyboard);
+        self.show.events(keyboard);
         self.scene.events(keyboard);
         self.selection.events(mouse, self.viewport);
         if let Some(pencil) = &mut self.pencil {
             pencil.events(keyboard);
-        }
-
-        if keyboard.is_pressed(KeyCode::G) {
-            self.show_grid = !self.show_grid;
         }
     }
 
@@ -42,9 +88,14 @@ impl SceneView {
 
         if let Some(pencil) = self.pencil {
             match pencil {
-                Pencil::Floor((floor, orientation)) =>
-                    self.update_floor(keyboard, floor, orientation),
-                Pencil::Wall(wall) => self.update_walls(keyboard, wall),
+                Pencil::Floor((floor, orientation)) => {
+                    self.show.show_floors();
+                    self.update_floor(keyboard, floor, orientation);
+                }
+                Pencil::Wall(wall) => {
+                    self.show.show_walls();
+                    self.update_walls(keyboard, wall);
+                }
             }
         }
     }
@@ -127,7 +178,7 @@ impl SceneView {
     }
 
     pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer, mouse: &Mouse) {
-        self.scene.get().render(tile_renderer);
+        self.scene.get().render(tile_renderer, self.show);
 
         if let Some(pencil) = self.pencil {
             if Selection::None == self.selection {
@@ -137,7 +188,7 @@ impl SceneView {
 
         tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
-        if self.show_grid {
+        if self.show.grid() {
             Grid::draw(ctx, self.viewport);
         }
     }

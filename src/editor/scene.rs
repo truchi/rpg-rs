@@ -14,22 +14,26 @@ impl Scene {
         }
     }
 
-    pub fn render(&self, tile_renderer: &mut TileRenderer) {
-        for (pos, &(floor, orientation)) in &self.floors {
-            tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32], orientation));
+    pub fn render(&self, tile_renderer: &mut TileRenderer, show: Show) {
+        if show.floors() {
+            for (pos, &(floor, orientation)) in &self.floors {
+                tile_renderer.add((floor.tile(), [pos.x as f32, pos.y as f32], orientation));
+            }
         }
 
-        for (pos, walls) in &self.walls {
-            if let Some(wall) = walls.bottom {
-                tile_renderer.add((wall.tile(), [pos.x as f32, pos.y as f32]));
-            }
+        if show.walls() {
+            for (pos, walls) in &self.walls {
+                if let Some(wall) = walls.bottom {
+                    tile_renderer.add((wall.tile(), [pos.x as f32, pos.y as f32]));
+                }
 
-            if walls.left {
-                tile_renderer.add((Tile::WALL_SIDE_MID_RIGHT, [pos.x as f32, pos.y as f32]));
-            }
+                if walls.left {
+                    tile_renderer.add((Tile::WALL_SIDE_MID_RIGHT, [pos.x as f32, pos.y as f32]));
+                }
 
-            if walls.right {
-                tile_renderer.add((Tile::WALL_SIDE_MID_LEFT, [pos.x as f32, pos.y as f32]));
+                if walls.right {
+                    tile_renderer.add((Tile::WALL_SIDE_MID_LEFT, [pos.x as f32, pos.y as f32]));
+                }
             }
         }
     }
