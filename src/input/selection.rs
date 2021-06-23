@@ -65,6 +65,28 @@ impl ButtonSelection {
             Self::Select((start, end)) => ButtonSelection::Select((i(start), i(end))),
         }
     }
+
+    pub fn draw(&self, ctx: &mut Context, viewport: Viewport) {
+        let (Range { start: sx, end: ex }, Range { start: sy, end: ey }) = self.ranges();
+        let Point { x: ox, y: oy } = viewport.origin();
+        let Point { x: tx, y: ty } = viewport.tile();
+        let w = (ex - sx) as f32 * tx;
+        let h = (ey - sy) as f32 * ty;
+        let x = ox + sx as f32 * tx + 1.;
+        let y = oy + sy as f32 * ty + 1.;
+
+        MeshBuilder::new()
+            .rectangle(
+                DrawMode::stroke(1.),
+                [0., 0., w, h].into(),
+                Color::new(1., 0., 0., 1.),
+            )
+            .unwrap()
+            .build(ctx)
+            .unwrap()
+            .draw(ctx, DrawParam::new().dest([x, y]))
+            .unwrap();
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -75,7 +97,7 @@ pub enum Selection {
 }
 
 impl Selection {
-    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport) {
+    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport, persist: bool) {
         let position = viewport.coordinates(mouse.position());
         let left = mouse.left_press();
         let right = mouse.right_press();
@@ -84,14 +106,14 @@ impl Selection {
             Self::Left(selection) =>
                 if left {
                     selection.select(position);
-                } else {
-                    *self = Self::None;
+                } else if !persist || right {
+                    self.clear()
                 },
             Self::Right(selection) =>
                 if right {
                     selection.select(position);
-                } else {
-                    *self = Self::None;
+                } else if !persist {
+                    self.clear()
                 },
             Self::None =>
                 if left {
@@ -99,6 +121,18 @@ impl Selection {
                 } else if right {
                     *self = Self::Right(ButtonSelection::start(position));
                 },
+        }
+    }
+
+    pub fn clear(&mut self) {
+        *self = Self::None;
+    }
+
+    pub fn draw(&self, ctx: &mut Context, viewport: Viewport) {
+        match self {
+            Self::Left(selection) => selection.draw(ctx, viewport),
+            Self::Right(selection) => selection.draw(ctx, viewport),
+            Self::None => {}
         }
     }
 }

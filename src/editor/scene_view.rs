@@ -77,9 +77,12 @@ impl SceneView {
         self.viewport.handle_keys(keyboard);
         self.show.events(keyboard);
         self.scene.events(keyboard);
-        self.selection.events(mouse, self.viewport);
+
         if let Some(pencil) = &mut self.pencil {
             pencil.events(keyboard);
+            self.selection.events(mouse, self.viewport, false);
+        } else {
+            self.selection.events(mouse, self.viewport, true);
         }
     }
 
@@ -190,6 +193,10 @@ impl SceneView {
 
         if self.show.grid() {
             Grid::draw(ctx, self.viewport);
+        }
+
+        if self.pencil == None {
+            self.selection.draw(ctx, self.viewport)
         }
     }
 }

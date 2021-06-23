@@ -18,7 +18,7 @@ pub use viewport::*;
 
 macro_rules! elements {
     ($($Name:ident $N:literal [$($Variant:ident $Tile:ident)*])*) => { $(
-        #[derive(Copy, Clone, Debug)]
+        #[derive(Copy, Clone, PartialEq, Debug)]
         pub enum $Name { $($Variant,)* }
         pub use $Name::*;
 
@@ -118,7 +118,7 @@ impl Default for WallEnum {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Element {
     Floor(FloorEnum),
     Wall(WallEnum),
@@ -133,7 +133,7 @@ impl Element {
     }
 }
 
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Default, Debug)]
 pub struct Walls {
     pub bottom: Option<WallEnum>,
     pub left:   bool,
@@ -171,7 +171,7 @@ impl Walls {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Orientation {
     North,
     East,

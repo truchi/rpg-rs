@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Pencil {
     Floor((FloorEnum, Orientation)),
     Wall(WallEnum),
