@@ -60,31 +60,29 @@ impl SceneView {
 
         match self.selection {
             Selection::Left(selection) => {
-                let (undo, ranges) = selection.ranges();
-                if undo {
+                if !selection.is_start() {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
                     if ctrl {
-                        scene.remove_floor(ranges.clone());
+                        scene.remove_floor(selection.ranges());
                     } else {
-                        scene.add_floor(floor, orientation, ranges.clone());
+                        scene.add_floor(floor, orientation, selection.ranges());
                     }
                 });
             }
             Selection::Right(selection) => {
-                let (undo, ranges) = selection.ranges();
-                if undo {
+                if !selection.is_start() {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
                     if ctrl {
-                        scene.remove_floor(ranges.clone())
+                        scene.remove_floor(selection.ranges());
                     } else {
                         scene.rotate_floor(
-                            ranges.clone(),
+                            selection.ranges(),
                             if shift {
                                 Orientation::rotate_left
                             } else {
@@ -105,19 +103,23 @@ impl SceneView {
             Selection::Left(selection) => {
                 let x = selection.get_start().x % 1.;
                 let x = if x < 0. { x + 1. } else { x };
-                let (undo, ranges) = selection.ranges();
-                if undo {
+                if !selection.is_start() {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
-                    if 0. <= x && x < 0.33 {
-                        scene.left_wall(!ctrl, ranges.clone());
-                    } else if 0.33 <= x && x <= 0.67 {
-                        scene.bottom_wall(if ctrl { None } else { Some(wall) }, ranges.clone());
-                    } else {
-                        scene.right_wall(!ctrl, ranges.clone());
-                    }
+                    x_to_wall(
+                        x,
+                        scene,
+                        |scene| scene.left_wall(!ctrl, selection.vertical()),
+                        |scene| {
+                            scene.bottom_wall(
+                                if ctrl { None } else { Some(wall) },
+                                selection.horizontal(),
+                            )
+                        },
+                        |scene| scene.right_wall(!ctrl, selection.vertical()),
+                    );
                 });
             }
             _ => {}
@@ -138,5 +140,21 @@ impl SceneView {
         if self.show_grid {
             Grid::draw(ctx, self.viewport);
         }
+    }
+}
+
+pub fn x_to_wall<T, U>(
+    x: f32,
+    data: T,
+    mut left: impl FnMut(T) -> U,
+    mut bottom: impl FnMut(T) -> U,
+    mut right: impl FnMut(T) -> U,
+) -> U {
+    if 0. <= x && x < 0.33 {
+        left(data)
+    } else if 0.33 <= x && x <= 0.67 {
+        bottom(data)
+    } else {
+        right(data)
     }
 }

@@ -22,16 +22,36 @@ impl ButtonSelection {
         }
     }
 
-    pub fn ranges(&self) -> (bool, (Range<i16>, Range<i16>)) {
+    pub fn is_start(&self) -> bool {
+        match self {
+            Self::Start(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn ranges(&self) -> (Range<i16>, Range<i16>) {
         match self.as_i16() {
-            ButtonSelection::Start(Point { x, y }) => (false, (x..x + 1, y..y + 1)),
+            ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
             ButtonSelection::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => (
-                true,
-                (
-                    if sx <= ex { sx..ex + 1 } else { ex..sx + 1 },
-                    if sy <= ey { sy..ey + 1 } else { ey..sy + 1 },
-                ),
+                if sx <= ex { sx..ex + 1 } else { ex..sx + 1 },
+                if sy <= ey { sy..ey + 1 } else { ey..sy + 1 },
             ),
+        }
+    }
+
+    pub fn horizontal(&self) -> (Range<i16>, Range<i16>) {
+        match self.as_i16() {
+            ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
+            ButtonSelection::Select((Point { x: sx, y: sy }, Point { x: ex, .. })) =>
+                (if sx <= ex { sx..ex + 1 } else { ex..sx + 1 }, sy..sy + 1),
+        }
+    }
+
+    pub fn vertical(&self) -> (Range<i16>, Range<i16>) {
+        match self.as_i16() {
+            ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
+            ButtonSelection::Select((Point { x: sx, y: sy }, Point { y: ey, .. })) =>
+                (sx..sx + 1, if sy <= ey { sy..ey + 1 } else { ey..sy + 1 }),
         }
     }
 
