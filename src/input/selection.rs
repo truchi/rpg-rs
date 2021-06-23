@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ButtonSelection<T = Point> {
     Start(T),
     Select((T, T)),
@@ -47,7 +47,7 @@ impl ButtonSelection {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Selection {
     Left(ButtonSelection),
     Right(ButtonSelection),

@@ -167,4 +167,13 @@ impl Viewport {
 
         [x.floor() as _, y.floor() as _].into()
     }
+
+    pub fn magnetize(&self, position: impl Into<Point>) -> Point {
+        let position = position.into();
+
+        Point {
+            x: ((position.x - self.origin().x) / self.tile().x).floor(),
+            y: ((position.y - self.origin().y) / self.tile().y).floor(),
+        }
+    }
 }

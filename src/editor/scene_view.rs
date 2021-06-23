@@ -20,6 +20,27 @@ impl Pencil {
             }
         }
     }
+
+    pub fn draw(&self, tile_renderer: &mut TileRenderer, position: Point, viewport: &Viewport) {
+        let magnet = viewport.magnetize(position);
+        let position = viewport.coordinates(position);
+        let x = position.x - magnet.x;
+
+        match *self {
+            Pencil::Floor((floor, orientation)) =>
+                tile_renderer.add((floor.tile(), magnet, orientation)),
+            Pencil::Wall(wall) => tile_renderer.add((
+                if 0. <= x && x < 0.33 {
+                    Tile::WALL_SIDE_MID_RIGHT
+                } else if 0.33 <= x && x <= 0.67 {
+                    wall.tile()
+                } else {
+                    Tile::WALL_SIDE_MID_LEFT
+                },
+                magnet,
+            )),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -59,7 +80,7 @@ impl SceneView {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
+    pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
         self.viewport.set_size(ctx);
 
         if let Some(pencil) = self.pencil {
@@ -146,8 +167,15 @@ impl SceneView {
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer) {
+    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer, mouse: &Mouse) {
         self.scene.get().render(tile_renderer);
+
+        if let Some(pencil) = self.pencil {
+            if Selection::None == self.selection {
+                pencil.draw(tile_renderer, mouse.position(), &self.viewport);
+            }
+        }
+
         tile_renderer.draw(ctx, self.viewport.origin(), self.viewport.scale());
 
         if self.show_grid {
