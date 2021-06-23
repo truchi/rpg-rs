@@ -20,8 +20,13 @@ impl<T: Clone> History<T> {
     }
 
     pub fn get(&self) -> &T {
-        debug_assert!(self.history.len() > 0);
-        debug_assert!(self.current + 1 < Self::MAX);
+        debug_assert!(self.history.len() > 0, "len == 0");
+        debug_assert!(
+            self.current < Self::MAX,
+            "current == {} >= {}",
+            self.current,
+            Self::MAX
+        );
 
         self.history.get(self.current).unwrap()
     }
@@ -33,7 +38,7 @@ impl<T: Clone> History<T> {
     }
 
     pub fn undo(&mut self) -> bool {
-        if self.current + 1 < self.history.len() && self.current + 1 < Self::MAX {
+        if self.current + 1 < self.history.len().min(Self::MAX) {
             self.current += 1;
             true
         } else {
