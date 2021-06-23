@@ -41,7 +41,7 @@ impl TilesView {
                     *pencil = Some(Pencil::Floor((floor, North)));
                 }
                 Element::Wall(wall) => {
-                    *pencil = Some(Pencil::BottomWall(wall));
+                    *pencil = Some(Pencil::Wall(wall));
                 }
             }
         } else {

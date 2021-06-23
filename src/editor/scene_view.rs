@@ -3,9 +3,7 @@ use super::*;
 #[derive(Copy, Clone, Debug)]
 pub enum Pencil {
     Floor((FloorEnum, Orientation)),
-    BottomWall(WallEnum),
-    LeftWall,
-    RightWall,
+    Wall(WallEnum),
 }
 
 impl Pencil {
@@ -13,35 +11,13 @@ impl Pencil {
         let shift = keyboard.shift();
 
         if keyboard.is_pressed(KeyCode::R) {
-            *self = match *self {
-                Self::Floor((floor, mut orientation)) => Self::Floor((floor, {
-                    if shift {
-                        orientation.rotate_left();
-                    } else {
-                        orientation.rotate_right();
-                    }
-                    orientation
-                })),
-                Self::BottomWall(wall) =>
-                    if shift {
-                        Self::RightWall
-                    } else {
-                        Self::LeftWall
-                    },
-                Self::LeftWall =>
-                    if shift {
-                        Self::BottomWall(Default::default())
-                    } else {
-                        Self::RightWall
-                    },
-                Self::RightWall =>
-                    if shift {
-                        Self::LeftWall
-                    } else {
-                        Self::BottomWall(Default::default())
-                    },
+            if let Self::Floor((_, orientation)) = self {
+                if shift {
+                    orientation.rotate_left();
+                } else {
+                    orientation.rotate_right();
+                }
             }
-        } else {
         }
     }
 }
@@ -90,10 +66,7 @@ impl SceneView {
             match pencil {
                 Pencil::Floor((floor, orientation)) =>
                     self.update_floor(keyboard, floor, orientation),
-                Pencil::BottomWall(wall) =>
-                    self.update_walls(keyboard, Scene::bottom_wall, Some(wall)),
-                Pencil::LeftWall => self.update_walls(keyboard, Scene::left_wall, true),
-                Pencil::RightWall => self.update_walls(keyboard, Scene::right_wall, true),
+                Pencil::Wall(wall) => self.update_walls(keyboard, wall),
             }
         }
     }
@@ -147,25 +120,25 @@ impl SceneView {
         }
     }
 
-    pub fn update_walls<F, T>(&mut self, keyboard: &Keyboard, f: F, arg: T)
-    where
-        F: Fn(&mut Scene, T, (Range<i16>, Range<i16>)),
-        T: Copy + Default,
-    {
+    pub fn update_walls(&mut self, keyboard: &Keyboard, wall: WallEnum) {
         let ctrl = keyboard.ctrl();
 
         match self.selection {
             Selection::Left(selection) => {
+                let x = selection.get_start().x % 1.;
+                let x = if x < 0. { x + 1. } else { x };
                 let (undo, ranges) = selection.ranges();
                 if undo {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
-                    if ctrl {
-                        f(scene, Default::default(), ranges.clone());
+                    if 0. <= x && x < 0.33 {
+                        scene.left_wall(!ctrl, ranges.clone());
+                    } else if 0.33 <= x && x <= 0.67 {
+                        scene.bottom_wall(if ctrl { None } else { Some(wall) }, ranges.clone());
                     } else {
-                        f(scene, arg, ranges.clone());
+                        scene.right_wall(!ctrl, ranges.clone());
                     }
                 });
             }

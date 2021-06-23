@@ -12,10 +12,14 @@ impl ButtonSelection {
     }
 
     pub fn select(&mut self, position: Point) {
-        *self = match *self {
-            Self::Start(point) => Self::Select((point, position)),
-            Self::Select((start, _)) => Self::Select((start, position)),
-        };
+        *self = Self::Select((self.get_start(), position));
+    }
+
+    pub fn get_start(&self) -> Point {
+        match *self {
+            Self::Start(start) => start,
+            Self::Select((start, _)) => start,
+        }
     }
 
     pub fn ranges(&self) -> (bool, (Range<i16>, Range<i16>)) {
@@ -37,7 +41,7 @@ impl ButtonSelection {
         }
 
         match *self {
-            Self::Start(point) => ButtonSelection::Start(i(point)),
+            Self::Start(start) => ButtonSelection::Start(i(start)),
             Self::Select((start, end)) => ButtonSelection::Select((i(start), i(end))),
         }
     }

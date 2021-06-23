@@ -154,16 +154,16 @@ impl Walls {
         }
     }
 
-    pub fn with_left() -> Self {
+    pub fn with_left(left: bool) -> Self {
         Self {
-            left: true,
+            left,
             ..Self::default()
         }
     }
 
-    pub fn with_right() -> Self {
+    pub fn with_right(right: bool) -> Self {
         Self {
-            right: true,
+            right,
             ..Self::default()
         }
     }

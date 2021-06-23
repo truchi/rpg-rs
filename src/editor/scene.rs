@@ -104,7 +104,7 @@ impl Scene {
                 if let Some(Walls { left, .. }) = self.walls.get_mut(&([i, j].into())) {
                     *left = bool;
                 } else {
-                    self.walls.insert([i, j].into(), Walls::with_left());
+                    self.walls.insert([i, j].into(), Walls::with_left(bool));
                 }
             }
         }
@@ -116,7 +116,7 @@ impl Scene {
                 if let Some(Walls { right, .. }) = self.walls.get_mut(&([i, j].into())) {
                     *right = bool;
                 } else {
-                    self.walls.insert([i, j].into(), Walls::with_right());
+                    self.walls.insert([i, j].into(), Walls::with_right(bool));
                 }
             }
         }
