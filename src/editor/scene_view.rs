@@ -51,11 +51,11 @@ impl Show {
 
 #[derive(Clone, Debug)]
 pub struct SceneView {
-    scene:      History<Scene>,
-    viewport:   Viewport,
-    show:       Show,
-    selection:  Selection,
-    pub pencil: Option<Pencil>,
+    scene:        History<Scene>,
+    pub viewport: Viewport,
+    show:         Show,
+    selection:    Selection,
+    pub pencil:   Option<Pencil>,
 }
 
 impl SceneView {

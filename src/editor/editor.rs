@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Views {
     Scene,
     Tiles,
@@ -78,6 +78,18 @@ impl Editor {
 }
 
 impl EventHandler for Editor {
+    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
+        if self.view == Views::Scene {
+            if self.keyboard.ctrl() {
+                self.scene_view.viewport.zoom(self.mouse.position(), y);
+            } else {
+                self.scene_view
+                    .viewport
+                    .translate([x * SCROLL_SENSITIVITY.x, y * SCROLL_SENSITIVITY.y]);
+            }
+        }
+    }
+
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         let now = Instant::now();
         // let delta = now - self.now;

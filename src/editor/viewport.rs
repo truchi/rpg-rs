@@ -63,6 +63,25 @@ impl Viewport {
         [self.scale() * TILE_WIDTH, self.scale() * TILE_HEIGHT].into()
     }
 
+    pub fn zoom(&mut self, point: impl Into<Point>, delta: f32) {
+        if self.scale == 0. {
+            self.scale = 1.;
+            return;
+        } else if -delta >= self.scale {
+            return;
+        }
+
+        let factor = (self.scale + delta) / self.scale;
+        let point = point.into();
+        let translate = Point {
+            x: (factor - 1.) * (point.x - self.origin().x),
+            y: (factor - 1.) * (point.y - self.origin().y),
+        };
+
+        self.scale *= factor;
+        self.translate(translate);
+    }
+
     pub fn zoom_in(&mut self) {
         self.scale *= 2.;
 
