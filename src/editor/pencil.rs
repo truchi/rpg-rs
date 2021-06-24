@@ -30,13 +30,12 @@ impl Pencil {
             Pencil::Floor((floor, orientation)) =>
                 tile_renderer.add((floor.tile(), magnet, orientation)),
             Pencil::Wall(wall) => tile_renderer.add((
-                x_to_wall(
+                thirds((
                     x,
-                    (),
-                    |_| Tile::WALL_SIDE_MID_RIGHT,
-                    |_| wall.tile(),
-                    |_| Tile::WALL_SIDE_MID_LEFT,
-                ),
+                    || Tile::WALL_SIDE_MID_RIGHT,
+                    || wall.tile(),
+                    || Tile::WALL_SIDE_MID_LEFT,
+                )),
                 magnet,
             )),
         }

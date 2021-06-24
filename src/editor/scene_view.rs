@@ -119,20 +119,18 @@ impl SceneView {
     pub fn update_walls(&mut self, wall: WallEnum) {
         match self.selection {
             Selection::Selecting(selection) => {
-                let x = selection.get_start().x % 1.;
-                let x = if x < 0. { x + 1. } else { x };
                 if !selection.is_start() {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
-                    x_to_wall(
-                        x,
+                    thirds((
+                        selection,
                         scene,
-                        |scene| scene.left_wall(true, selection.vertical()),
-                        |scene| scene.bottom_wall(Some(wall), selection.horizontal()),
-                        |scene| scene.right_wall(true, selection.vertical()),
-                    );
+                        |scene: &mut Scene| scene.left_wall(true, selection.vertical()),
+                        |scene: &mut Scene| scene.bottom_wall(Some(wall), selection.horizontal()),
+                        |scene: &mut Scene| scene.right_wall(true, selection.vertical()),
+                    ));
                 });
             }
             _ => {}
@@ -158,35 +156,74 @@ impl SceneView {
             if let Some(pencil) = self.pencil {
                 match pencil {
                     Pencil::Floor(_) => selection.draw(ctx, self.viewport),
-                    Pencil::Wall(_) => {
-                        let x = selection.get_start().x % 1.;
-                        let x = if x < 0. { x + 1. } else { x };
-                        x_to_wall(
-                            x,
-                            &mut ctx,
-                            |ctx| selection.draw_vertical(ctx, self.viewport),
-                            |ctx| selection.draw_horizontal(ctx, self.viewport),
-                            |ctx| selection.draw_vertical(ctx, self.viewport),
-                        )
-                    }
+                    Pencil::Wall(_) => thirds((
+                        selection,
+                        ctx,
+                        |ctx| selection.draw_vertical(ctx, self.viewport),
+                        |ctx| selection.draw_horizontal(ctx, self.viewport),
+                        |ctx| selection.draw_vertical(ctx, self.viewport),
+                    )),
                 }
             }
         }
     }
 }
 
-pub fn x_to_wall<T, U>(
-    x: f32,
-    data: T,
-    mut left: impl FnMut(T) -> U,
-    mut bottom: impl FnMut(T) -> U,
-    mut right: impl FnMut(T) -> U,
-) -> U {
-    if 0. <= x && x < 0.33 {
-        left(data)
-    } else if 0.33 <= x && x <= 0.67 {
-        bottom(data)
-    } else {
-        right(data)
+pub fn thirds<T: ThirdsArgs>(args: T) -> T::Output {
+    T::thirds(args)
+}
+
+pub trait ThirdsArgs {
+    type Output;
+
+    fn thirds(self) -> Self::Output;
+}
+
+impl<T, F1, F2, F3, U> ThirdsArgs for (f32, T, F1, F2, F3)
+where
+    F1: Fn(T) -> U,
+    F2: Fn(T) -> U,
+    F3: Fn(T) -> U,
+{
+    type Output = U;
+
+    fn thirds(self) -> Self::Output {
+        let x = self.0;
+        if 0. <= x && x < 0.33 {
+            self.2(self.1)
+        } else if 0.33 <= x && x <= 0.67 {
+            self.3(self.1)
+        } else {
+            self.4(self.1)
+        }
+    }
+}
+
+impl<F1, F2, F3, U> ThirdsArgs for (f32, F1, F2, F3)
+where
+    F1: Fn() -> U,
+    F2: Fn() -> U,
+    F3: Fn() -> U,
+{
+    type Output = U;
+
+    fn thirds(self) -> Self::Output {
+        (self.0, (), |()| self.1(), |()| self.2(), |()| self.3()).thirds()
+    }
+}
+
+impl<T, F1, F2, F3, U> ThirdsArgs for (ButtonSelection, T, F1, F2, F3)
+where
+    F1: Fn(T) -> U,
+    F2: Fn(T) -> U,
+    F3: Fn(T) -> U,
+{
+    type Output = U;
+
+    fn thirds(self) -> Self::Output {
+        let x = self.0.get_start().x % 1.;
+        let x = if x < 0. { x + 1. } else { x };
+
+        (x, self.1, self.2, self.3, self.4).thirds()
     }
 }
