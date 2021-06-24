@@ -67,7 +67,19 @@ impl ButtonSelection {
     }
 
     pub fn draw(&self, ctx: &mut Context, viewport: Viewport) {
-        let (Range { start: sx, end: ex }, Range { start: sy, end: ey }) = self.ranges();
+        Self::draw_ranges(ctx, viewport, self.ranges());
+    }
+
+    pub fn draw_horizontal(&self, ctx: &mut Context, viewport: Viewport) {
+        Self::draw_ranges(ctx, viewport, self.horizontal());
+    }
+
+    pub fn draw_vertical(&self, ctx: &mut Context, viewport: Viewport) {
+        Self::draw_ranges(ctx, viewport, self.vertical());
+    }
+
+    pub fn draw_ranges(ctx: &mut Context, viewport: Viewport, ranges: (Range<i16>, Range<i16>)) {
+        let (Range { start: sx, end: ex }, Range { start: sy, end: ey }) = ranges;
         let Point { x: ox, y: oy } = viewport.origin();
         let Point { x: tx, y: ty } = viewport.tile();
         let w = (ex - sx) as f32 * tx;
@@ -75,17 +87,15 @@ impl ButtonSelection {
         let x = ox + sx as f32 * tx + 1.;
         let y = oy + sy as f32 * ty + 1.;
 
-        MeshBuilder::new()
-            .rectangle(
-                DrawMode::stroke(1.),
-                [0., 0., w, h].into(),
-                Color::new(1., 0., 0., 1.),
-            )
-            .unwrap()
-            .build(ctx)
-            .unwrap()
-            .draw(ctx, DrawParam::new().dest([x, y]))
-            .unwrap();
+        Mesh::new_rectangle(
+            ctx,
+            DrawMode::stroke(1.),
+            [x, y, w, h].into(),
+            Color::new(0., 0., 1., 1.),
+        )
+        .unwrap()
+        .draw(ctx, DrawParam::new())
+        .unwrap();
     }
 }
 

@@ -139,7 +139,7 @@ impl SceneView {
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, tile_renderer: &mut TileRenderer, mouse: &Mouse) {
+    pub fn draw(&mut self, mut ctx: &mut Context, tile_renderer: &mut TileRenderer, mouse: &Mouse) {
         self.scene.get().render(tile_renderer, self.show);
 
         if let Some(pencil) = self.pencil {
@@ -154,8 +154,23 @@ impl SceneView {
             Grid::draw(ctx, self.viewport);
         }
 
-        if self.pencil == None {
-            self.selection.draw(ctx, self.viewport)
+        if let Selection::Selecting(selection) = self.selection {
+            if let Some(pencil) = self.pencil {
+                match pencil {
+                    Pencil::Floor(_) => selection.draw(ctx, self.viewport),
+                    Pencil::Wall(_) => {
+                        let x = selection.get_start().x % 1.;
+                        let x = if x < 0. { x + 1. } else { x };
+                        x_to_wall(
+                            x,
+                            &mut ctx,
+                            |ctx| selection.draw_vertical(ctx, self.viewport),
+                            |ctx| selection.draw_horizontal(ctx, self.viewport),
+                            |ctx| selection.draw_vertical(ctx, self.viewport),
+                        )
+                    }
+                }
+            }
         }
     }
 }
