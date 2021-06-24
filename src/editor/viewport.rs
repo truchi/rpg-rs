@@ -64,6 +64,9 @@ impl Viewport {
     }
 
     pub fn zoom(&mut self, point: impl Into<Point>, delta: f32) {
+        let point = point.into();
+        let scale = self.scale;
+
         if self.scale == 0. {
             self.scale = 1.;
             return;
@@ -71,29 +74,23 @@ impl Viewport {
             return;
         }
 
-        let factor = (self.scale + delta) / self.scale;
-        let point = point.into();
-        let translate = Point {
-            x: (factor - 1.) * (point.x - self.origin().x),
-            y: (factor - 1.) * (point.y - self.origin().y),
-        };
+        self.scale += delta;
+        self.translate(Point {
+            x: (delta / scale) * (point.x - self.origin().x),
+            y: (delta / scale) * (point.y - self.origin().y),
+        });
+    }
 
-        self.scale *= factor;
-        self.translate(translate);
+    pub fn zoom_reset(&mut self) {
+        self.zoom([self.size().x / 2., self.size().y / 2.], 1. - self.scale);
     }
 
     pub fn zoom_in(&mut self) {
-        self.scale *= 2.;
-
-        self.rect.x += self.w() / 2. - self.origin().x;
-        self.rect.y += self.h() / 2. - self.origin().y;
+        self.zoom([self.size().x / 2., self.size().y / 2.], self.scale);
     }
 
     pub fn zoom_out(&mut self) {
-        self.scale /= 2.;
-
-        self.rect.x -= (self.w() / 2. - self.origin().x) / 2.;
-        self.rect.y -= (self.h() / 2. - self.origin().y) / 2.;
+        self.zoom([self.size().x / 2., self.size().y / 2.], -self.scale / 2.);
     }
 
     pub fn translate(&mut self, translate: impl Into<Point>) {
@@ -121,7 +118,9 @@ impl Viewport {
             self.rect.y = 0.;
         }
 
-        if plus || page_up {
+        if equals {
+            self.zoom_reset();
+        } else if plus || page_up {
             self.zoom_in();
         } else if minus || page_down {
             self.zoom_out();
