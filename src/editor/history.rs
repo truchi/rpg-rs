@@ -31,10 +31,11 @@ impl<T: Clone> History<T> {
         self.history.get(self.current).unwrap()
     }
 
-    pub fn edit(&mut self, f: impl Fn(&mut T)) {
+    pub fn edit<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
         let mut t = self.get().clone();
-        f(&mut t);
+        let ret = f(&mut t);
         self.add(t);
+        ret
     }
 
     pub fn undo(&mut self) -> bool {

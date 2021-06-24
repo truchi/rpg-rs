@@ -85,7 +85,7 @@ impl Scene {
         }
     }
 
-    pub fn copy_floors(&mut self, (x, y): (Range<i16>, Range<i16>)) -> SceneFloors {
+    pub fn copy_floors(&self, (x, y): (Range<i16>, Range<i16>)) -> SceneFloors {
         let mut copy = SceneFloors::new();
 
         for i in x {
@@ -151,7 +151,7 @@ impl Scene {
         }
     }
 
-    pub fn copy_walls(&mut self, (x, y): (Range<i16>, Range<i16>)) -> SceneWalls {
+    pub fn copy_walls(&self, (x, y): (Range<i16>, Range<i16>)) -> SceneWalls {
         let mut copy = SceneWalls::new();
 
         for i in x {
@@ -191,7 +191,7 @@ impl Scene {
         copy
     }
 
-    pub fn copy(&mut self, ranges: (Range<i16>, Range<i16>), show: Show) -> Self {
+    pub fn copy(&self, ranges: (Range<i16>, Range<i16>), show: Show) -> Self {
         let mut copy = Self::new();
 
         if show.floors() {

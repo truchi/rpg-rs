@@ -52,6 +52,7 @@ impl Show {
 #[derive(Clone, Debug)]
 pub struct SceneView {
     scene:         History<Scene>,
+    buffer:        Option<(ButtonSelection, Scene)>,
     pub viewport:  Viewport,
     show:          Show,
     pub selection: Selection,
@@ -66,6 +67,7 @@ impl SceneView {
 
         Self {
             scene,
+            buffer: None,
             viewport: Viewport::new(ctx),
             show: Show::new(),
             selection: Selection::None,
@@ -87,7 +89,7 @@ impl SceneView {
         self.selection.events(mouse, self.viewport, persist);
     }
 
-    pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
+    pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
         self.viewport.set_size(ctx);
 
         if let Some(pencil) = self.pencil {
@@ -102,6 +104,8 @@ impl SceneView {
                 }
             }
         } else if let Selection::Selected(selection) = self.selection {
+            let show = self.show;
+
             if keyboard.is_pressed(KeyCode::R) {
                 self.scene.edit(|scene| {
                     scene.rotate_floor(
@@ -114,12 +118,30 @@ impl SceneView {
                     )
                 });
             } else if keyboard.is_pressed(KeyCode::Delete) {
-                let show = self.show;
                 self.scene
                     .edit(|scene| scene.remove(selection.ranges(), show));
                 self.selection.clear();
+            } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::X) {
+                self.buffer = Some((
+                    selection,
+                    self.scene.edit(|scene| scene.cut(selection.ranges(), show)),
+                ));
+                self.selection.clear();
+            } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::C) {
+                self.buffer = Some((selection, self.scene.get().copy(selection.ranges(), show)));
+                self.selection.clear();
             }
         }
+
+        // if keyboard.ctrl() && keyboard.is_pressed(KeyCode::V) {
+        // if let Some((selection, buffer)) = &self.buffer {
+        // let start = selection.get_start();
+        // let position = self.viewport.coordinates(mouse.position());
+        // self.scene.edit(|scene| {
+        // scene.paste(buffer.clone(), [position.x - start.x, position.y -
+        // start.y]) });
+        // }
+        // }
     }
 
     pub fn update_floor(&mut self, floor: FloorEnum, orientation: Orientation) {
