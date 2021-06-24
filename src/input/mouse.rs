@@ -1,52 +1,99 @@
 use super::*;
 
 #[derive(Copy, Clone, Debug)]
+enum Button {
+    Click(Point),
+    Drag(Rect),
+}
+
+impl Button {
+    fn new(position: Point) -> Self {
+        Self::Click(position)
+    }
+
+    fn update(&mut self, position: Point) {
+        fn drag(x: f32, y: f32, position: Point) -> Button {
+            Button::Drag(Rect {
+                x,
+                y,
+                w: position.x - x,
+                h: position.y - y,
+            })
+        }
+
+        *self = match *self {
+            Self::Click(Point { x, y }) => drag(x, y, position),
+            Self::Drag(Rect { x, y, .. }) => drag(x, y, position),
+        }
+    }
+
+    fn click(&self) -> Option<Point> {
+        match *self {
+            Self::Click(point) => Some(point),
+            Self::Drag(_) => None,
+        }
+    }
+
+    fn drag(&self) -> Option<Rect> {
+        match *self {
+            Self::Click(_) => None,
+            Self::Drag(rect) => Some(rect),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
 pub struct Mouse {
     position: Point,
-    left:     Option<bool>,
-    middle:   Option<bool>,
-    right:    Option<bool>,
+    left:     Option<Button>,
+    right:    Option<Button>,
 }
 
 macro_rules! clicks {
-    ($($button:ident: $fresh:ident $press:ident)*) => { $(
-        pub fn $fresh(&self) -> bool { self.$button.unwrap_or(false) }
-        pub fn $press(&self) -> bool { self.$button.is_some() }
+    ($($button:ident $click:ident $drag:ident)*) => { $(
+        pub fn $button(&self) -> bool {
+            self.$button.is_some()
+        }
+
+        pub fn $click(&self) -> Option<Point> {
+            self.$button.and_then(|button| button.click())
+        }
+
+        pub fn $drag(&self) -> Option<Rect> {
+            self.$button.and_then(|button| button.drag())
+        }
     )* };
 }
 
 impl Mouse {
-    clicks!(
-        left  : left   left_press
-        middle: middle middle_press
-        right : right  right_press
-    );
+    clicks!(left left_click left_drag right right_click right_drag);
 
     pub fn new() -> Self {
         Self {
             left:     None,
-            middle:   None,
             right:    None,
             position: [0., 0.].into(),
         }
     }
 
     pub fn update(&mut self, ctx: &mut Context) {
+        self.position = ggez::input::mouse::position(ctx);
+
         macro_rules! buttons {
             ($($button:ident ($Button:ident))*) => { $(
-                self.$button = if ggez::input::mouse::button_pressed(ctx, MouseButton::$Button) {
-                    Some(match self.$button {
-                        Some(_) => false,
-                        None => true,
-                    })
+                if ggez::input::mouse::button_pressed(ctx, MouseButton::$Button) {
+                    if let Some(button) = &mut self.$button {
+                        button.update(self.position);
+                    } else {
+                        self.$button = Some(Button::new(self.position));
+                    }
                 } else {
-                    None
+                    self.$button = None;
                 };
             )* };
         }
 
-        self.position = ggez::input::mouse::position(ctx);
-        buttons!(left (Left) middle (Middle) right (Right));
+        buttons!(left (Left) right (Right));
     }
 
     pub fn position(&self) -> Point {

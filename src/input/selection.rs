@@ -99,8 +99,8 @@ pub enum Selection {
 impl Selection {
     pub fn events(&mut self, mouse: &Mouse, viewport: Viewport, persist: bool) {
         let position = viewport.coordinates(mouse.position());
-        let left = mouse.left_press();
-        let right = mouse.right_press();
+        let left = mouse.left();
+        let right = mouse.right();
 
         match self {
             Self::Left(selection) =>

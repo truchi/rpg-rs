@@ -13,9 +13,7 @@ impl TilesView {
     }
 
     pub fn events(&mut self, ctx: &mut Context, keyboard: &Keyboard, mouse: &Mouse) {
-        if mouse.left() {
-            let pos = mouse.position();
-
+        if let Some(pos) = mouse.left_click() {
             for (i, &(Point { x, y }, element)) in Self::ELEMENTS.iter().enumerate() {
                 let tile = element.tile();
                 let x = x * TILE_WIDTH;
