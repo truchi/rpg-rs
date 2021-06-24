@@ -36,12 +36,8 @@ impl Grid {
     }
 
     fn grid(mesh: &mut MeshBuilder, viewport: Viewport) {
-        let lerp = |start: f32, end: f32| -> f32 {
-            (end - start) / (MAX_ZOOM as f32) * viewport.zoom() as f32 + start
-        };
-
-        let green = Color::new(0., 1., 0., lerp(0.25, 0.5));
-        let red = Color::new(1., 0., 0., lerp(0., 0.25));
+        let green = Color::new(0., 1., 0., 0.5);
+        let red = Color::new(1., 0., 0., 0.25);
 
         let w = viewport.tile().x;
         let h = viewport.tile().y;

@@ -1,6 +1,5 @@
 use super::*;
 
-pub const MAX_ZOOM: u8 = 4; // MUST NOT be > 7, so 2**MAX_ZOOM <= u8::MAX
 pub const DEBUG_HITBOXES: bool = true;
 pub const KEYBOARD_DEBOUNCE: Duration = Duration::from_millis(100);
 pub const ARTPACK: &'static str = "/tiles.png";

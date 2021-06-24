@@ -2,8 +2,7 @@ use super::*;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Viewport {
-    zoom:  u8,
-    scale: u8,
+    scale: f32,
     rect:  Rect,
 }
 
@@ -12,8 +11,7 @@ impl Viewport {
         let (w, h) = ggez::graphics::drawable_size(ctx);
 
         Self {
-            zoom:  0,
-            scale: 1,
+            scale: 1.,
             rect:  [0., 0., w, h].into(),
         }
     }
@@ -57,50 +55,26 @@ impl Viewport {
         [-self.rect.x, -self.rect.y].into()
     }
 
-    pub fn zoom(&self) -> u8 {
-        self.zoom
-    }
-
     pub fn scale(&self) -> f32 {
-        self.scale.into()
+        self.scale
     }
 
     pub fn tile(&self) -> Point {
         [self.scale() * TILE_WIDTH, self.scale() * TILE_HEIGHT].into()
     }
 
-    pub fn zoom_min(&mut self) {
-        while self.zoom_out() {}
+    pub fn zoom_in(&mut self) {
+        self.scale *= 2.;
+
+        self.rect.x += self.w() / 2. - self.origin().x;
+        self.rect.y += self.h() / 2. - self.origin().y;
     }
 
-    pub fn zoom_max(&mut self) {
-        while self.zoom_in() {}
-    }
+    pub fn zoom_out(&mut self) {
+        self.scale /= 2.;
 
-    pub fn zoom_in(&mut self) -> bool {
-        if self.zoom <= MAX_ZOOM - 1 {
-            self.zoom += 1;
-            self.scale *= 2;
-
-            self.rect.x += self.w() / 2. - self.origin().x;
-            self.rect.y += self.h() / 2. - self.origin().y;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn zoom_out(&mut self) -> bool {
-        if self.zoom > 0 {
-            self.zoom -= 1;
-            self.scale /= 2;
-
-            self.rect.x -= (self.w() / 2. - self.origin().x) / 2.;
-            self.rect.y -= (self.h() / 2. - self.origin().y) / 2.;
-            true
-        } else {
-            false
-        }
+        self.rect.x -= (self.w() / 2. - self.origin().x) / 2.;
+        self.rect.y -= (self.h() / 2. - self.origin().y) / 2.;
     }
 
     pub fn translate(&mut self, translate: impl Into<Point>) {
@@ -128,11 +102,7 @@ impl Viewport {
             self.rect.y = 0.;
         }
 
-        if ctrl && page_up {
-            self.zoom_max();
-        } else if equals || ctrl && page_down {
-            self.zoom_min();
-        } else if plus || page_up {
+        if plus || page_up {
             self.zoom_in();
         } else if minus || page_down {
             self.zoom_out();
