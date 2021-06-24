@@ -1,25 +1,14 @@
 use super::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum ButtonSelection<T = Point> {
-    Start(T),
-    Select((T, T)),
+pub enum ButtonSelection<T = f32> {
+    Start(Point<T>),
+    Select((Point<T>, Point<T>)),
 }
 
-impl ButtonSelection {
-    pub fn start(position: Point) -> Self {
-        Self::Start(position)
-    }
-
-    pub fn select(&mut self, position: Point) {
-        *self = Self::Select((self.get_start(), position));
-    }
-
-    pub fn get_start(&self) -> Point {
-        match *self {
-            Self::Start(start) => start,
-            Self::Select((start, _)) => start,
-        }
+impl<T: IntoI16<Output = i16>> ButtonSelection<T> {
+    fn select(&mut self, position: Point<T>) {
+        *self = Self::Select((self.start(), position));
     }
 
     pub fn is_start(&self) -> bool {
@@ -29,8 +18,15 @@ impl ButtonSelection {
         }
     }
 
+    pub fn start(&self) -> Point<T> {
+        match *self {
+            Self::Start(start) => start,
+            Self::Select((start, _)) => start,
+        }
+    }
+
     pub fn ranges(&self) -> (Range<i16>, Range<i16>) {
-        match self.as_i16() {
+        match self.into_i16() {
             ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
             ButtonSelection::Select((Point { x: sx, y: sy }, Point { x: ex, y: ey })) => (
                 if sx <= ex { sx..ex + 1 } else { ex..sx + 1 },
@@ -40,7 +36,7 @@ impl ButtonSelection {
     }
 
     pub fn horizontal(&self) -> (Range<i16>, Range<i16>) {
-        match self.as_i16() {
+        match self.into_i16() {
             ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
             ButtonSelection::Select((Point { x: sx, y: sy }, Point { x: ex, .. })) =>
                 (if sx <= ex { sx..ex + 1 } else { ex..sx + 1 }, sy..sy + 1),
@@ -48,21 +44,10 @@ impl ButtonSelection {
     }
 
     pub fn vertical(&self) -> (Range<i16>, Range<i16>) {
-        match self.as_i16() {
+        match self.into_i16() {
             ButtonSelection::Start(Point { x, y }) => (x..x + 1, y..y + 1),
             ButtonSelection::Select((Point { x: sx, y: sy }, Point { y: ey, .. })) =>
                 (sx..sx + 1, if sy <= ey { sy..ey + 1 } else { ey..sy + 1 }),
-        }
-    }
-
-    fn as_i16(&self) -> ButtonSelection<Point<i16>> {
-        fn i(point: Point) -> Point<i16> {
-            [point.x.floor() as _, point.y.floor() as _].into()
-        }
-
-        match *self {
-            Self::Start(start) => ButtonSelection::Start(i(start)),
-            Self::Select((start, end)) => ButtonSelection::Select((i(start), i(end))),
         }
     }
 
@@ -107,6 +92,10 @@ pub enum Selection {
 }
 
 impl Selection {
+    pub fn start(position: Point) -> Self {
+        Self::Selecting(ButtonSelection::Start(position))
+    }
+
     pub fn events(&mut self, mouse: &Mouse, viewport: Viewport, persist: bool) {
         let position = viewport.coordinates(mouse.position());
         let left = mouse.left();
@@ -131,7 +120,7 @@ impl Selection {
                 },
             Self::None =>
                 if left {
-                    *self = Self::Selecting(ButtonSelection::start(position));
+                    *self = Self::start(position);
                 },
         }
     }
@@ -145,6 +134,50 @@ impl Selection {
             Self::Selecting(selection) => Some(selection),
             Self::Selected(selection) => Some(selection),
             Self::None => None,
+        }
+    }
+}
+
+pub trait IntoI16: Copy {
+    type Output;
+    fn into_i16(&self) -> Self::Output;
+}
+
+impl IntoI16 for f32 {
+    type Output = i16;
+
+    fn into_i16(&self) -> Self::Output {
+        self.floor() as _
+    }
+}
+
+impl<T: IntoI16<Output = i16>> IntoI16 for Point<T> {
+    type Output = Point<i16>;
+
+    fn into_i16(&self) -> Self::Output {
+        Point {
+            x: self.x.into_i16(),
+            y: self.y.into_i16(),
+        }
+    }
+}
+
+impl<T: IntoI16<Output = i16>> IntoI16 for (Point<T>, Point<T>) {
+    type Output = (Point<i16>, Point<i16>);
+
+    fn into_i16(&self) -> Self::Output {
+        (self.0.into_i16(), self.1.into_i16())
+    }
+}
+
+impl<T: IntoI16<Output = i16>> IntoI16 for ButtonSelection<T> {
+    type Output = ButtonSelection<i16>;
+
+    fn into_i16(&self) -> Self::Output {
+        match self {
+            Self::Start(start) => ButtonSelection::Start(start.into_i16()),
+            Self::Select((start, end)) =>
+                ButtonSelection::Select((start.into_i16(), end.into_i16())),
         }
     }
 }

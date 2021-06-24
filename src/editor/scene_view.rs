@@ -262,7 +262,7 @@ where
     type Output = U;
 
     fn thirds(self) -> Self::Output {
-        let x = self.0.get_start().x % 1.;
+        let x = self.0.start().x % 1.;
         let x = if x < 0. { x + 1. } else { x };
 
         (x, self.1, self.2, self.3, self.4).thirds()
