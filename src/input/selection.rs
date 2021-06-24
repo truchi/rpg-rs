@@ -78,7 +78,7 @@ impl ButtonSelection {
         Self::draw_ranges(ctx, viewport, self.vertical());
     }
 
-    pub fn draw_ranges(ctx: &mut Context, viewport: Viewport, ranges: (Range<i16>, Range<i16>)) {
+    fn draw_ranges(ctx: &mut Context, viewport: Viewport, ranges: (Range<i16>, Range<i16>)) {
         let (Range { start: sx, end: ex }, Range { start: sy, end: ey }) = ranges;
         let Point { x: ox, y: oy } = viewport.origin();
         let Point { x: tx, y: ty } = viewport.tile();
@@ -102,23 +102,35 @@ impl ButtonSelection {
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Selection {
     Selecting(ButtonSelection),
+    Selected(ButtonSelection),
     None,
 }
 
 impl Selection {
-    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport) {
+    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport, persist: bool) {
         let position = viewport.coordinates(mouse.position());
-        let click = mouse.left();
+        let left = mouse.left();
+        let right = mouse.right();
 
         match self {
             Self::Selecting(selection) =>
-                if click {
+                if left {
                     selection.select(position);
+                } else if persist {
+                    *self = Self::Selected(*selection)
+                } else {
+                    self.clear()
+                },
+            Self::Selected(_) =>
+                if persist {
+                    if right {
+                        self.clear()
+                    }
                 } else {
                     self.clear()
                 },
             Self::None =>
-                if click {
+                if left {
                     *self = Self::Selecting(ButtonSelection::start(position));
                 },
         }
@@ -128,10 +140,11 @@ impl Selection {
         *self = Self::None;
     }
 
-    pub fn draw(&self, ctx: &mut Context, viewport: Viewport) {
-        match self {
-            Self::Selecting(selection) => selection.draw(ctx, viewport),
-            Self::None => {}
+    pub fn selection(&self) -> Option<ButtonSelection> {
+        match *self {
+            Self::Selecting(selection) => Some(selection),
+            Self::Selected(selection) => Some(selection),
+            Self::None => None,
         }
     }
 }

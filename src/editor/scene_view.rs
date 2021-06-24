@@ -51,11 +51,11 @@ impl Show {
 
 #[derive(Clone, Debug)]
 pub struct SceneView {
-    scene:        History<Scene>,
-    pub viewport: Viewport,
-    show:         Show,
-    selection:    Selection,
-    pub pencil:   Option<Pencil>,
+    scene:         History<Scene>,
+    pub viewport:  Viewport,
+    show:          Show,
+    pub selection: Selection,
+    pub pencil:    Option<Pencil>,
 }
 
 impl SceneView {
@@ -77,10 +77,12 @@ impl SceneView {
         self.viewport.handle_keys(keyboard);
         self.show.events(keyboard);
         self.scene.events(keyboard);
-        self.selection.events(mouse, self.viewport);
 
         if let Some(pencil) = &mut self.pencil {
             pencil.events(keyboard);
+            self.selection.events(mouse, self.viewport, false);
+        } else {
+            self.selection.events(mouse, self.viewport, true);
         }
     }
 
@@ -152,18 +154,16 @@ impl SceneView {
             Grid::draw(ctx, self.viewport);
         }
 
-        if let Selection::Selecting(selection) = self.selection {
-            if let Some(pencil) = self.pencil {
-                match pencil {
-                    Pencil::Floor(_) => selection.draw(ctx, self.viewport),
-                    Pencil::Wall(_) => thirds((
-                        selection,
-                        ctx,
-                        |ctx| selection.draw_vertical(ctx, self.viewport),
-                        |ctx| selection.draw_horizontal(ctx, self.viewport),
-                        |ctx| selection.draw_vertical(ctx, self.viewport),
-                    )),
-                }
+        if let Some(selection) = self.selection.selection() {
+            match self.pencil {
+                Some(Pencil::Wall(_)) => thirds((
+                    selection,
+                    ctx,
+                    |ctx| selection.draw_vertical(ctx, self.viewport),
+                    |ctx| selection.draw_horizontal(ctx, self.viewport),
+                    |ctx| selection.draw_vertical(ctx, self.viewport),
+                )),
+                _ => selection.draw(ctx, self.viewport),
             }
         }
     }

@@ -43,6 +43,7 @@ impl Editor {
 
     fn events(&mut self) {
         if self.keyboard.is_pressed(KeyCode::Tab) {
+            self.scene_view.selection.clear();
             self.view.switch();
         }
 
