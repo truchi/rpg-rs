@@ -66,13 +66,13 @@ impl Viewport {
     pub fn zoom(&mut self, point: impl Into<Point>, delta: f32) {
         let point = point.into();
         let scale = self.scale;
-
-        if self.scale == 0. {
-            self.scale = 1.;
-            return;
-        } else if -delta >= self.scale {
-            return;
-        }
+        let delta = if scale + delta > SCALE_LIMIT {
+            SCALE_LIMIT - scale
+        } else if scale + delta < 1. / SCALE_LIMIT {
+            1. / SCALE_LIMIT - scale
+        } else {
+            delta
+        };
 
         self.scale += delta;
         self.translate(Point {

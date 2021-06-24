@@ -1,5 +1,6 @@
 use super::*;
 
+pub const SCALE_LIMIT: f32 = 10.;
 pub const SCROLL_SENSITIVITY: Point = Point { x: 30., y: -30. };
 pub const DEBUG_HITBOXES: bool = true;
 pub const KEYBOARD_DEBOUNCE: Duration = Duration::from_millis(100);
