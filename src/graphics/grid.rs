@@ -38,8 +38,8 @@ impl Grid {
     fn grid(mesh: &mut MeshBuilder, viewport: Viewport) {
         let green = Color::new(0., 1., 0., 0.5);
         let red = Color::new(
-            1.,
             0.,
+            0.5,
             0.,
             if viewport.scale() >= SCALE_LIMIT / 2. {
                 0.25
