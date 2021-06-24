@@ -100,6 +100,19 @@ impl SceneView {
                     self.update_walls(wall);
                 }
             }
+        } else if let Selection::Selected(selection) = self.selection {
+            if keyboard.is_pressed(KeyCode::R) {
+                self.scene.edit(|scene| {
+                    scene.rotate_floor(
+                        selection.ranges(),
+                        if keyboard.shift() {
+                            Orientation::rotate_left
+                        } else {
+                            Orientation::rotate_right
+                        },
+                    )
+                });
+            }
         }
     }
 
