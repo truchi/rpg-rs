@@ -77,12 +77,10 @@ impl SceneView {
         self.viewport.handle_keys(keyboard);
         self.show.events(keyboard);
         self.scene.events(keyboard);
+        self.selection.events(mouse, self.viewport);
 
         if let Some(pencil) = &mut self.pencil {
             pencil.events(keyboard);
-            self.selection.events(mouse, self.viewport, false);
-        } else {
-            self.selection.events(mouse, self.viewport, true);
         }
     }
 
@@ -93,68 +91,34 @@ impl SceneView {
             match pencil {
                 Pencil::Floor((floor, orientation)) => {
                     self.show.show_floors();
-                    self.update_floor(keyboard, floor, orientation);
+                    self.update_floor(floor, orientation);
                 }
                 Pencil::Wall(wall) => {
                     self.show.show_walls();
-                    self.update_walls(keyboard, wall);
+                    self.update_walls(wall);
                 }
             }
         }
     }
 
-    pub fn update_floor(
-        &mut self,
-        keyboard: &Keyboard,
-        floor: FloorEnum,
-        orientation: Orientation,
-    ) {
-        let ctrl = keyboard.ctrl();
-        let shift = keyboard.shift();
-
+    pub fn update_floor(&mut self, floor: FloorEnum, orientation: Orientation) {
         match self.selection {
-            Selection::Left(selection) => {
+            Selection::Selecting(selection) => {
                 if !selection.is_start() {
                     self.scene.undo();
                 }
 
                 self.scene.edit(|scene| {
-                    if ctrl {
-                        scene.remove_floor(selection.ranges());
-                    } else {
-                        scene.add_floor(floor, orientation, selection.ranges());
-                    }
-                });
-            }
-            Selection::Right(selection) => {
-                if !selection.is_start() {
-                    self.scene.undo();
-                }
-
-                self.scene.edit(|scene| {
-                    if ctrl {
-                        scene.remove_floor(selection.ranges());
-                    } else {
-                        scene.rotate_floor(
-                            selection.ranges(),
-                            if shift {
-                                Orientation::rotate_left
-                            } else {
-                                Orientation::rotate_right
-                            },
-                        )
-                    }
+                    scene.add_floor(floor, orientation, selection.ranges());
                 });
             }
             _ => {}
         }
     }
 
-    pub fn update_walls(&mut self, keyboard: &Keyboard, wall: WallEnum) {
-        let ctrl = keyboard.ctrl();
-
+    pub fn update_walls(&mut self, wall: WallEnum) {
         match self.selection {
-            Selection::Left(selection) => {
+            Selection::Selecting(selection) => {
                 let x = selection.get_start().x % 1.;
                 let x = if x < 0. { x + 1. } else { x };
                 if !selection.is_start() {
@@ -165,14 +129,9 @@ impl SceneView {
                     x_to_wall(
                         x,
                         scene,
-                        |scene| scene.left_wall(!ctrl, selection.vertical()),
-                        |scene| {
-                            scene.bottom_wall(
-                                if ctrl { None } else { Some(wall) },
-                                selection.horizontal(),
-                            )
-                        },
-                        |scene| scene.right_wall(!ctrl, selection.vertical()),
+                        |scene| scene.left_wall(true, selection.vertical()),
+                        |scene| scene.bottom_wall(Some(wall), selection.horizontal()),
+                        |scene| scene.right_wall(true, selection.vertical()),
                     );
                 });
             }

@@ -91,35 +91,25 @@ impl ButtonSelection {
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Selection {
-    Left(ButtonSelection),
-    Right(ButtonSelection),
+    Selecting(ButtonSelection),
     None,
 }
 
 impl Selection {
-    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport, persist: bool) {
+    pub fn events(&mut self, mouse: &Mouse, viewport: Viewport) {
         let position = viewport.coordinates(mouse.position());
-        let left = mouse.left();
-        let right = mouse.right();
+        let click = mouse.left();
 
         match self {
-            Self::Left(selection) =>
-                if left {
+            Self::Selecting(selection) =>
+                if click {
                     selection.select(position);
-                } else if !persist || right {
-                    self.clear()
-                },
-            Self::Right(selection) =>
-                if right {
-                    selection.select(position);
-                } else if !persist {
+                } else {
                     self.clear()
                 },
             Self::None =>
-                if left {
-                    *self = Self::Left(ButtonSelection::start(position));
-                } else if right {
-                    *self = Self::Right(ButtonSelection::start(position));
+                if click {
+                    *self = Self::Selecting(ButtonSelection::start(position));
                 },
         }
     }
@@ -130,8 +120,7 @@ impl Selection {
 
     pub fn draw(&self, ctx: &mut Context, viewport: Viewport) {
         match self {
-            Self::Left(selection) => selection.draw(ctx, viewport),
-            Self::Right(selection) => selection.draw(ctx, viewport),
+            Self::Selecting(selection) => selection.draw(ctx, viewport),
             Self::None => {}
         }
     }
