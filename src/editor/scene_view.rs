@@ -78,12 +78,13 @@ impl SceneView {
         self.show.events(keyboard);
         self.scene.events(keyboard);
 
-        if let Some(pencil) = &mut self.pencil {
+        let persist = if let Some(pencil) = &mut self.pencil {
             pencil.events(keyboard);
-            self.selection.events(mouse, self.viewport, false);
+            false
         } else {
-            self.selection.events(mouse, self.viewport, true);
-        }
+            true
+        };
+        self.selection.events(mouse, self.viewport, persist);
     }
 
     pub fn update(&mut self, ctx: &mut Context, keyboard: &Keyboard) {
@@ -112,6 +113,11 @@ impl SceneView {
                         },
                     )
                 });
+            } else if keyboard.is_pressed(KeyCode::Delete) {
+                let show = self.show;
+                self.scene
+                    .edit(|scene| scene.remove(selection.ranges(), show));
+                self.selection.clear();
             }
         }
     }

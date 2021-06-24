@@ -1,9 +1,12 @@
 use super::*;
 
+type SceneFloors = HashMap<Point<i16>, (FloorEnum, Orientation)>;
+type SceneWalls = HashMap<Point<i16>, Walls>;
+
 #[derive(Clone, Default, Debug)]
 pub struct Scene {
-    pub floors: HashMap<Point<i16>, (FloorEnum, Orientation)>,
-    pub walls:  HashMap<Point<i16>, Walls>,
+    pub floors: SceneFloors,
+    pub walls:  SceneWalls,
 }
 
 impl Scene {
@@ -82,6 +85,28 @@ impl Scene {
         }
     }
 
+    pub fn copy_floors(&mut self, (x, y): (Range<i16>, Range<i16>)) -> SceneFloors {
+        let mut copy = SceneFloors::new();
+
+        for i in x {
+            for j in y.clone() {
+                if let Some(&floor) = self.floors.get(&[i, j].into()) {
+                    copy.insert([i, j].into(), floor);
+                }
+            }
+        }
+
+        copy
+    }
+
+    pub fn paste_floors(&mut self, floors: SceneFloors, delta: impl Into<Point<i16>>) {
+        let delta = delta.into();
+
+        for (Point { x, y }, floor) in floors {
+            self.floors.insert([x + delta.x, y + delta.y].into(), floor);
+        }
+    }
+
     pub fn walls(&mut self, walls: Walls, (x, y): (Range<i16>, Range<i16>)) {
         for i in x {
             for j in y.clone() {
@@ -124,5 +149,66 @@ impl Scene {
                 }
             }
         }
+    }
+
+    pub fn copy_walls(&mut self, (x, y): (Range<i16>, Range<i16>)) -> SceneWalls {
+        let mut copy = SceneWalls::new();
+
+        for i in x {
+            for j in y.clone() {
+                if let Some(&walls) = self.walls.get(&[i, j].into()) {
+                    copy.insert([i, j].into(), walls);
+                }
+            }
+        }
+
+        copy
+    }
+
+    pub fn paste_walls(&mut self, walls: SceneWalls, delta: impl Into<Point<i16>>) {
+        let delta = delta.into();
+
+        for (Point { x, y }, walls) in walls {
+            self.walls.insert([x + delta.x, y + delta.y].into(), walls);
+        }
+    }
+
+    pub fn remove(&mut self, ranges: (Range<i16>, Range<i16>), show: Show) {
+        if show.floors() {
+            self.remove_floor(ranges.clone())
+        }
+
+        if show.walls() {
+            self.bottom_wall(None, ranges.clone());
+            self.left_wall(false, ranges.clone());
+            self.right_wall(false, ranges.clone());
+        }
+    }
+
+    pub fn cut(&mut self, ranges: (Range<i16>, Range<i16>), show: Show) -> Self {
+        let copy = self.copy(ranges.clone(), show);
+        self.remove(ranges, show);
+        copy
+    }
+
+    pub fn copy(&mut self, ranges: (Range<i16>, Range<i16>), show: Show) -> Self {
+        let mut copy = Self::new();
+
+        if show.floors() {
+            copy.floors = self.copy_floors(ranges.clone());
+        }
+
+        if show.walls() {
+            copy.walls = self.copy_walls(ranges.clone());
+        }
+
+        copy
+    }
+
+    pub fn paste(&mut self, scene: Self, delta: impl Into<Point<i16>>) {
+        let delta = delta.into();
+
+        self.paste_floors(scene.floors, delta);
+        self.paste_walls(scene.walls, delta);
     }
 }
