@@ -26,17 +26,48 @@ impl Scene {
 
         if show.walls() {
             for (pos, walls) in &self.walls {
-                if let Some(wall) = walls.bottom {
-                    tile_renderer.add((wall.tile(), [pos.x as f32, pos.y as f32]));
+                let top_row = [
+                    self.walls.get(&top_left(*pos)).copied().unwrap_or_default(),
+                    self.walls.get(&top(*pos)).copied().unwrap_or_default(),
+                    self.walls
+                        .get(&top_right(*pos))
+                        .copied()
+                        .unwrap_or_default(),
+                ];
+                let middle_row = [
+                    self.walls.get(&left(*pos)).copied().unwrap_or_default(),
+                    *walls,
+                    self.walls.get(&right(*pos)).copied().unwrap_or_default(),
+                ];
+                let bottom_row = [
+                    self.walls
+                        .get(&bottom_left(*pos))
+                        .copied()
+                        .unwrap_or_default(),
+                    self.walls.get(&bottom(*pos)).copied().unwrap_or_default(),
+                    self.walls
+                        .get(&bottom_right(*pos))
+                        .copied()
+                        .unwrap_or_default(),
+                ];
+
+                for tile in Walls::tile([top_row, middle_row, bottom_row]) {
+                    if let Some(tile) = tile {
+                        tile_renderer.add((tile, [pos.x as f32, pos.y as f32]));
+                    }
                 }
 
-                if walls.left {
-                    tile_renderer.add((Tile::WALL_SIDE_MID_RIGHT, [pos.x as f32, pos.y as f32]));
-                }
-
-                if walls.right {
-                    tile_renderer.add((Tile::WALL_SIDE_MID_LEFT, [pos.x as f32, pos.y as f32]));
-                }
+                // if let Some(wall) = walls.bottom {
+                // tile_renderer.add((wall.tile(), [pos.x as f32, pos.y as
+                // f32])); }
+                //
+                // if walls.left {
+                // tile_renderer.add((Tile::WALL_SIDE_MID_RIGHT, [pos.x as f32,
+                // pos.y as f32])); }
+                //
+                // if walls.right {
+                // tile_renderer.add((Tile::WALL_SIDE_MID_LEFT, [pos.x as f32,
+                // pos.y as f32])); }
             }
         }
     }
@@ -211,4 +242,36 @@ impl Scene {
         self.paste_floors(scene.floors, delta);
         self.paste_walls(scene.walls, delta);
     }
+}
+
+pub fn top(Point { x, y }: Point<i16>) -> Point<i16> {
+    Point { x, y: y - 1 }
+}
+
+pub fn bottom(Point { x, y }: Point<i16>) -> Point<i16> {
+    Point { x, y: y + 1 }
+}
+
+pub fn left(Point { x, y }: Point<i16>) -> Point<i16> {
+    Point { x: x - 1, y }
+}
+
+pub fn right(Point { x, y }: Point<i16>) -> Point<i16> {
+    Point { x: x + 1, y }
+}
+
+pub fn top_left(point: Point<i16>) -> Point<i16> {
+    top(left(point))
+}
+
+pub fn top_right(point: Point<i16>) -> Point<i16> {
+    top(right(point))
+}
+
+pub fn bottom_left(point: Point<i16>) -> Point<i16> {
+    bottom(left(point))
+}
+
+pub fn bottom_right(point: Point<i16>) -> Point<i16> {
+    bottom(right(point))
 }

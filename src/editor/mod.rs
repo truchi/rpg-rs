@@ -133,6 +133,35 @@ impl Element {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum Orientation {
+    North,
+    East,
+    South,
+    West,
+}
+pub use Orientation::*;
+
+impl Orientation {
+    pub fn rotate_right(&mut self) {
+        *self = match self {
+            North => East,
+            East => South,
+            South => West,
+            West => North,
+        };
+    }
+
+    pub fn rotate_left(&mut self) {
+        *self = match self {
+            North => West,
+            East => North,
+            South => East,
+            West => South,
+        };
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Default, Debug)]
 pub struct Walls {
     pub bottom: Option<WallEnum>,
@@ -169,33 +198,46 @@ impl Walls {
             ..Self::default()
         }
     }
-}
 
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Orientation {
-    North,
-    East,
-    South,
-    West,
-}
-pub use Orientation::*;
+    pub fn tile(grid: [[Self; 3]; 3]) -> [Option<Tile>; 3] {
+        let [[tl, t, tr], [ml, m, mr], [bl, b, br]] = grid;
 
-impl Orientation {
-    pub fn rotate_right(&mut self) {
-        *self = match self {
-            North => East,
-            East => South,
-            South => West,
-            West => North,
-        };
-    }
+        macro_rules! g {
+            ($left:pat, $bottom:pat, $right:pat) => {
+                Self { bottom: $bottom, left: $left, right: $right }
+            };
+            ([$([$(($left:pat, $bottom:pat, $right:pat))*])*]) => {
+                [$([$(g!($left, $bottom, $right),)*],)*]
+            };
+        }
 
-    pub fn rotate_left(&mut self) {
-        *self = match self {
-            North => West,
-            East => North,
-            South => East,
-            West => South,
-        };
+        // if let g!(false, Some(wall), false) = m {
+        // return Some(wall.tile());
+        // }
+
+        [
+            if let Some(wall) = m.bottom {
+                Some(wall.tile())
+            } else {
+                None
+            },
+            if m.left {
+                Some(Tile::WALL_SIDE_MID_RIGHT)
+            } else {
+                None
+            },
+            if m.right {
+                Some(Tile::WALL_SIDE_MID_LEFT)
+            } else {
+                None
+            },
+        ]
+
+        // return match grid {
+        // g!([[(_, _, false)(false, None, false)(false, _, _)]
+        // [(_, Some(_), false)(false, Some(walls), false)(false, Some(_), _)]
+        // [(_, _, false)(false, None, false)(false, _, _)]]) =>
+        // Some(walls.tile()), _ => None,
+        // };
     }
 }
