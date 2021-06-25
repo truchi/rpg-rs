@@ -18,6 +18,22 @@ impl<T: IntoI16<Output = i16>> ButtonSelection<T> {
         }
     }
 
+    pub fn translate(self, translate: impl Into<Point<T>>) -> Self
+    where
+        T: Add<Output = T>,
+    {
+        let translate = translate.into();
+        let t = |point: Point<T>| Point {
+            x: point.x + translate.x,
+            y: point.y + translate.y,
+        };
+
+        match self {
+            Self::Start(start) => Self::Start(t(start)),
+            Self::Select((start, end)) => Self::Select((t(start), t(end))),
+        }
+    }
+
     pub fn start(&self) -> Point<T> {
         match *self {
             Self::Start(start) => start,
@@ -141,6 +157,14 @@ impl Selection {
 pub trait IntoI16: Copy {
     type Output;
     fn into_i16(&self) -> Self::Output;
+}
+
+impl IntoI16 for i16 {
+    type Output = i16;
+
+    fn into_i16(&self) -> Self::Output {
+        *self
+    }
 }
 
 impl IntoI16 for f32 {

@@ -103,45 +103,51 @@ impl SceneView {
                     self.update_walls(wall);
                 }
             }
-        } else if let Selection::Selected(selection) = self.selection {
-            let show = self.show;
+        } else {
+            if let Selection::Selected(selection) = self.selection {
+                let show = self.show;
 
-            if keyboard.is_pressed(KeyCode::R) {
-                self.scene.edit(|scene| {
-                    scene.rotate_floor(
-                        selection.ranges(),
-                        if keyboard.shift() {
-                            Orientation::rotate_left
-                        } else {
-                            Orientation::rotate_right
-                        },
-                    )
-                });
-            } else if keyboard.is_pressed(KeyCode::Delete) {
-                self.scene
-                    .edit(|scene| scene.remove(selection.ranges(), show));
-                self.selection.clear();
-            } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::X) {
-                self.buffer = Some((
-                    selection,
-                    self.scene.edit(|scene| scene.cut(selection.ranges(), show)),
-                ));
-                self.selection.clear();
-            } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::C) {
-                self.buffer = Some((selection, self.scene.get().copy(selection.ranges(), show)));
-                self.selection.clear();
+                if keyboard.is_pressed(KeyCode::R) {
+                    self.scene.edit(|scene| {
+                        scene.rotate_floor(
+                            selection.ranges(),
+                            if keyboard.shift() {
+                                Orientation::rotate_left
+                            } else {
+                                Orientation::rotate_right
+                            },
+                        )
+                    });
+                } else if keyboard.is_pressed(KeyCode::Delete) {
+                    self.scene
+                        .edit(|scene| scene.remove(selection.ranges(), show));
+                    self.selection.clear();
+                } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::X) {
+                    self.buffer = Some((
+                        selection,
+                        self.scene.edit(|scene| scene.cut(selection.ranges(), show)),
+                    ));
+                    self.selection.clear();
+                } else if keyboard.ctrl() && keyboard.is_pressed(KeyCode::C) {
+                    self.buffer =
+                        Some((selection, self.scene.get().copy(selection.ranges(), show)));
+                    self.selection.clear();
+                }
+            }
+
+            if keyboard.ctrl() && keyboard.is_pressed(KeyCode::V) {
+                if let Some((selection, buffer)) = &self.buffer {
+                    let position = self.viewport.coordinates_i16(mouse.position());
+                    let start = selection.into_i16().start();
+                    let dx = position.x - start.x;
+                    let dy = position.y - start.y;
+
+                    self.selection = Selection::Selected(selection.translate([dx as _, dy as _]));
+                    self.scene
+                        .edit(|scene| scene.paste(buffer.clone(), [dx, dy]));
+                }
             }
         }
-
-        // if keyboard.ctrl() && keyboard.is_pressed(KeyCode::V) {
-        // if let Some((selection, buffer)) = &self.buffer {
-        // let start = selection.get_start();
-        // let position = self.viewport.coordinates(mouse.position());
-        // self.scene.edit(|scene| {
-        // scene.paste(buffer.clone(), [position.x - start.x, position.y -
-        // start.y]) });
-        // }
-        // }
     }
 
     pub fn update_floor(&mut self, floor: FloorEnum, orientation: Orientation) {

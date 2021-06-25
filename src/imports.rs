@@ -32,7 +32,7 @@ pub use std::{
     collections::{hash_map::HashMap, hash_set::HashSet},
     f32::consts::TAU,
     io::Read,
-    ops::Range,
+    ops::{Add, Range},
     path::Path,
     time::{Duration, Instant},
 };
